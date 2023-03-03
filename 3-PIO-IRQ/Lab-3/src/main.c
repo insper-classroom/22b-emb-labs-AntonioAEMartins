@@ -75,7 +75,6 @@ void pisca_led(int n, int t, int led){
 		pio_clear(LED2_PIO, LED2_MASK);
 		delay_ms(t);
 		pio_set(LED2_PIO, LED2_MASK);
-		delay_ms(t);
 		atualiza_barra();
 	}
 	if (indexLed >= 30){
@@ -153,13 +152,13 @@ void init(void)
 	pio_configure(LED2_PIO, PIO_OUTPUT_0, LED2_MASK, PIO_DEFAULT);
 	//Button 1
 	pmc_enable_periph_clk(BUT1_ID);								// Ativando Botao 1
-	pio_configure(BUT1_PIO, PIO_INPUT, BUT1_MASK, PIO_PULLUP);
+	pio_configure(BUT1_PIO, PIO_INPUT, BUT1_MASK, PIO_PULLUP | PIO_DEBOUNCE);
 	// Button 2
 	pmc_enable_periph_clk(BUT2_ID);
-	pio_configure(BUT2_PIO, PIO_INPUT, BUT2_MASK, PIO_PULLUP);
+	pio_configure(BUT2_PIO, PIO_INPUT, BUT2_MASK, PIO_PULLUP | PIO_DEBOUNCE);
 	// Button 3
 	pmc_enable_periph_clk(BUT3_ID);
-	pio_configure(BUT3_PIO, PIO_INPUT, BUT3_MASK, PIO_PULLUP);
+	pio_configure(BUT3_PIO, PIO_INPUT, BUT3_MASK, PIO_PULLUP | PIO_DEBOUNCE);
 	
 	// Adding Interruptions - Button 1
 	pio_handler_set(BUT1_PIO, BUT1_ID, BUT1_MASK, PIO_IT_FALL_EDGE, but_callback1);
@@ -180,6 +179,8 @@ void init(void)
 	pio_get_interrupt_status(BUT3_PIO);
 	NVIC_EnableIRQ(BUT3_ID);
 	NVIC_SetPriority(BUT3_ID, 4);
+	
+	
 }
 
 
