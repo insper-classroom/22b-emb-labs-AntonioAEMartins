@@ -345,11 +345,11 @@ static void task_orientacao(void *pvParameters){
 				led_orientacao(0);
 				printf("Esquerda");
 			}
-			if (yaw >= 0.0 & yaw < 45.0){
+			if (yaw >= -10.0 & yaw < 50.0){
 				led_orientacao(1);
 				printf("Centro");
 			}
-			if(yaw >= 45.0){
+			if(yaw >= 50.0){
 				led_orientacao(2);
 				printf("Direita");
 			}
