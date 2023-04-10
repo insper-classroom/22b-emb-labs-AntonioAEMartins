@@ -33,9 +33,9 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING
  14 .debug_line   00017cdc  00000000  00000000  00080f87  2**0
                   CONTENTS, READONLY, DEBUGGING
- 15 .debug_str    00096578  00000000  00000000  00098c63  2**0
+ 15 .debug_str    000965cc  00000000  00000000  00098c63  2**0
                   CONTENTS, READONLY, DEBUGGING
- 16 .debug_frame  00003ce8  00000000  00000000  0012f1dc  2**2
+ 16 .debug_frame  00003ce8  00000000  00000000  0012f230  2**2
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -7886,12 +7886,27 @@ void echo_callback(void){
   40320e:	4620      	mov	r0, r4
   403210:	4b13      	ldr	r3, [pc, #76]	; (403260 <echo_callback+0xa0>)
   403212:	4798      	blx	r3
+
+    \param [in]      IRQn  External interrupt number. Value cannot be negative.
+ */
+__STATIC_INLINE void NVIC_DisableIRQ(IRQn_Type IRQn)
+{
   NVIC->ICER[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F)); /* disable interrupt */
   403214:	4b13      	ldr	r3, [pc, #76]	; (403264 <echo_callback+0xa4>)
   403216:	2208      	movs	r2, #8
   403218:	f8c3 2080 	str.w	r2, [r3, #128]	; 0x80
+
+    \param [in]      IRQn  External interrupt number. Value cannot be negative.
+ */
+__STATIC_INLINE void NVIC_ClearPendingIRQ(IRQn_Type IRQn)
+{
   NVIC->ICPR[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F)); /* Clear pending interrupt */
   40321c:	f8c3 2180 	str.w	r2, [r3, #384]	; 0x180
+__STATIC_INLINE void NVIC_SetPriority(IRQn_Type IRQn, uint32_t priority)
+{
+  if(IRQn < 0) {
+    SCB->SHPR[((uint32_t)(IRQn) & 0xF)-4] = ((priority << (8 - __NVIC_PRIO_BITS)) & 0xff); } /* set Priority for Cortex-M  System Interrupts */
+  else {
     NVIC->IP[(uint32_t)(IRQn)]            = ((priority << (8 - __NVIC_PRIO_BITS)) & 0xff); } /* set Priority for device specific Interrupts  */
   403220:	2180      	movs	r1, #128	; 0x80
   403222:	f883 1303 	strb.w	r1, [r3, #771]	; 0x303
@@ -8226,6 +8241,12 @@ extern void vApplicationTickHook(void) { }
   403434:	4770      	bx	lr
 
 00403436 <vApplicationMallocFailedHook>:
+
+portFORCE_INLINE static void vPortRaiseBASEPRI( void )
+{
+uint32_t ulNewBASEPRI;
+
+	__asm volatile
   403436:	f04f 0380 	mov.w	r3, #128	; 0x80
   40343a:	b672      	cpsid	i
   40343c:	f383 8811 	msr	BASEPRI, r3
@@ -8872,6 +8893,12 @@ static inline void stdio_serial_init(volatile void *usart, const usart_serial_op
   40396e:	9407      	str	r4, [sp, #28]
 	usart_settings.channel_mode= US_MR_CHMODE_NORMAL;
   403970:	9408      	str	r4, [sp, #32]
+ *
+ * \param ul_id Id (number) of the peripheral clock.
+ */
+static inline void sysclk_enable_peripheral_clock(uint32_t ul_id)
+{
+	pmc_enable_periph_clk(ul_id);
   403972:	200e      	movs	r0, #14
   403974:	47b0      	blx	r6
 		usart_init_rs232(p_usart, &usart_settings,
