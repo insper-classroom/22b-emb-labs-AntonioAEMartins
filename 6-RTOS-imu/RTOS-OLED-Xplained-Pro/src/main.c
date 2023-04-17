@@ -9,21 +9,6 @@
 #include "Fusion/Fusion.h"
 
 /* Botao da placa */
-#define BUT_PIO     PIOA
-#define BUT_PIO_ID  ID_PIOA
-#define BUT_PIO_PIN 11
-#define BUT_PIO_PIN_MASK (1 << BUT_PIO_PIN)
-
-#define TR_PIO PIOA
-#define TR_ID ID_PIOA
-#define TR_IDX 6
-#define TR_MASK (1 << TR_IDX)
-
-#define EC_PIO PIOD
-#define EC_ID ID_PIOD
-#define EC_IDX 30
-#define EC_MASK (1 << EC_IDX)
-
 
 #define LED_PIO PIOC
 #define LED_ID ID_PIOC

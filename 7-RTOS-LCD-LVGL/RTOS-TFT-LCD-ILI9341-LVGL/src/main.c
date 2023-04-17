@@ -103,6 +103,7 @@ void RTT_Handler(void) {
 	if ((ul_status & RTT_SR_ALMS) == RTT_SR_ALMS) {
 		if (flag_minutes == 0){
 				seconds++;
+				printf("Adicionou");
 				if (seconds >= 60){
 					seconds = 0;
 					minutes ++;
@@ -111,7 +112,6 @@ void RTT_Handler(void) {
 					hours++;
 					minutes = 0;
 				}
-				RTT_init(4, 4, RTT_MR_ALMIEN);
 		}
 	}
 }
@@ -298,6 +298,7 @@ static void task_lcd(void *pvParameters) {
 
 static void task_rtt(void *pvParameters){
 	for(;;){
+		RTT_init(4, 4, RTT_MR_ALMIEN);
 		if (flag_minutes == 0){
 			lv_label_set_text_fmt(labelFloor4, "%02d", hours);
 			lv_label_set_text_fmt(labelFloor3, "%02d", minutes);
