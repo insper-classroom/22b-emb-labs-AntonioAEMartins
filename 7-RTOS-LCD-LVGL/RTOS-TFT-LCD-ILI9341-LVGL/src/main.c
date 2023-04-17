@@ -37,6 +37,16 @@ volatile int hours = 0;
 volatile int seconds = 0;
 volatile int flag_minutes = 0;
 
+typedef struct  {
+	uint32_t year;
+	uint32_t month;
+	uint32_t day;
+	uint32_t week;
+	uint32_t hour;
+	uint32_t minute;
+	uint32_t second;
+} calendar;
+
 /************************************************************************/
 /* RTOS                                                                 */
 /************************************************************************/
@@ -63,57 +73,116 @@ extern void vApplicationMallocFailedHook(void) {
 	configASSERT( ( volatile void * ) NULL );
 }
 
-
-static void RTT_init(float freqPrescale, uint32_t IrqNPulses, uint32_t rttIRQSource);
+void RTC_init(Rtc *rtc, uint32_t id_rtc, calendar t, uint32_t irq_type);
+//static void RTT_init(float freqPrescale, uint32_t IrqNPulses, uint32_t rttIRQSource);
 /************************************************************************/
 /* lvgl                                                                 */
 /************************************************************************/
 
-static void RTT_init(float freqPrescale, uint32_t IrqNPulses, uint32_t rttIRQSource) {
+// static void RTT_init(float freqPrescale, uint32_t IrqNPulses, uint32_t rttIRQSource) {
+// 
+// 	uint16_t pllPreScale = (int) (((float) 32768) / freqPrescale);
+// 	
+// 	rtt_sel_source(RTT, false);
+// 	rtt_init(RTT, pllPreScale);
+// 	
+// 	if (rttIRQSource & RTT_MR_ALMIEN) {
+// 		uint32_t ul_previous_time;
+// 		ul_previous_time = rtt_read_timer_value(RTT);
+// 		while (ul_previous_time == rtt_read_timer_value(RTT));
+// 		rtt_write_alarm_time(RTT, IrqNPulses+ul_previous_time);
+// 	}
+// 
+// 	/* config NVIC */
+// 	NVIC_DisableIRQ(RTT_IRQn);
+// 	NVIC_ClearPendingIRQ(RTT_IRQn);
+// 	NVIC_SetPriority(RTT_IRQn, 4);
+// 	NVIC_EnableIRQ(RTT_IRQn);
+// 
+// 	/* Enable RTT interrupt */
+// 	if (rttIRQSource & (RTT_MR_RTTINCIEN | RTT_MR_ALMIEN))
+// 	rtt_enable_interrupt(RTT, rttIRQSource);
+// 	else
+// 	rtt_disable_interrupt(RTT, RTT_MR_RTTINCIEN | RTT_MR_ALMIEN);
+// 	
+// }
 
-	uint16_t pllPreScale = (int) (((float) 32768) / freqPrescale);
+// void RTT_Handler(void) {
+// 	uint32_t ul_status;
+// 	ul_status = rtt_get_status(RTT);
+// 	if ((ul_status & RTT_SR_ALMS) == RTT_SR_ALMS) {
+// 		if (flag_minutes == 0){
+// 				seconds++;
+// 				printf("Adicionou");
+// 				if (seconds >= 60){
+// 					seconds = 0;
+// 					minutes ++;
+// 				}
+// 				if (minutes >= 60){
+// 					hours++;
+// 					minutes = 0;
+// 				}
+// 		}
+// 	}
+// }
+
+
+void RTC_Handler(void) {
+	uint32_t ul_status = rtc_get_status(RTC);
 	
-	rtt_sel_source(RTT, false);
-	rtt_init(RTT, pllPreScale);
+	/* seccond tick */
+	if ((ul_status & RTC_SR_SEC) == RTC_SR_SEC) {
+		// o código para irq de segundo vem aqui
+		if (flag_minutes == 0){
+			seconds++;
+			if (seconds >= 60){
+				seconds = 0;
+				minutes += 2;
+			}
+			if (minutes >= 60){
+				hours++;
+				minutes = 0;
+			}
+		}
+		calendar rtc_initial = {2018, 3, 19, 12, 15, 45, 1};
+		RTC_init(RTC, ID_RTC, rtc_initial, RTC_IER_ALREN);
+		//printf("1 Segundo");
+	}
 	
-	if (rttIRQSource & RTT_MR_ALMIEN) {
-		uint32_t ul_previous_time;
-		ul_previous_time = rtt_read_timer_value(RTT);
-		while (ul_previous_time == rtt_read_timer_value(RTT));
-		rtt_write_alarm_time(RTT, IrqNPulses+ul_previous_time);
+	/* Time or date alarm */
+	if ((ul_status & RTC_SR_ALARM) == RTC_SR_ALARM) {
+		printf("Salve");
+		// o código para irq de alame vem aqui
+
 	}
 
-	/* config NVIC */
-	NVIC_DisableIRQ(RTT_IRQn);
-	NVIC_ClearPendingIRQ(RTT_IRQn);
-	NVIC_SetPriority(RTT_IRQn, 4);
-	NVIC_EnableIRQ(RTT_IRQn);
-
-	/* Enable RTT interrupt */
-	if (rttIRQSource & (RTT_MR_RTTINCIEN | RTT_MR_ALMIEN))
-	rtt_enable_interrupt(RTT, rttIRQSource);
-	else
-	rtt_disable_interrupt(RTT, RTT_MR_RTTINCIEN | RTT_MR_ALMIEN);
-	
+	rtc_clear_status(RTC, RTC_SCCR_SECCLR);
+	rtc_clear_status(RTC, RTC_SCCR_ALRCLR);
+	rtc_clear_status(RTC, RTC_SCCR_ACKCLR);
+	rtc_clear_status(RTC, RTC_SCCR_TIMCLR);
+	rtc_clear_status(RTC, RTC_SCCR_CALCLR);
+	rtc_clear_status(RTC, RTC_SCCR_TDERRCLR);
 }
 
-void RTT_Handler(void) {
-	uint32_t ul_status;
-	ul_status = rtt_get_status(RTT);
-	if ((ul_status & RTT_SR_ALMS) == RTT_SR_ALMS) {
-		if (flag_minutes == 0){
-				seconds++;
-				printf("Adicionou");
-				if (seconds >= 60){
-					seconds = 0;
-					minutes ++;
-				}
-				if (minutes >= 60){
-					hours++;
-					minutes = 0;
-				}
-		}
-	}
+void RTC_init(Rtc *rtc, uint32_t id_rtc, calendar t, uint32_t irq_type) {
+	/* Configura o PMC */
+	pmc_enable_periph_clk(ID_RTC);
+
+	/* Default RTC configuration, 24-hour mode */
+	rtc_set_hour_mode(rtc, 0);
+
+	/* Configura data e hora manualmente */
+	rtc_set_date(rtc, t.year, t.month, t.day, t.week);
+	rtc_set_time(rtc, t.hour, t.minute, t.second);
+
+	/* Configure RTC interrupts */
+	NVIC_DisableIRQ(id_rtc);
+	NVIC_ClearPendingIRQ(id_rtc);
+	NVIC_SetPriority(id_rtc, 4);
+	NVIC_EnableIRQ(id_rtc);
+
+	/* Ativa interrupcao via alarme */
+	rtc_enable_interrupt(rtc,  irq_type);
 }
 
 
@@ -298,7 +367,7 @@ static void task_lcd(void *pvParameters) {
 
 static void task_rtt(void *pvParameters){
 	for(;;){
-		RTT_init(4, 4, RTT_MR_ALMIEN);
+		//RTT_init(4, 4, RTT_MR_ALMIEN);
 		if (flag_minutes == 0){
 			lv_label_set_text_fmt(labelFloor4, "%02d", hours);
 			lv_label_set_text_fmt(labelFloor3, "%02d", minutes);
@@ -406,7 +475,17 @@ int main(void) {
 	configure_touch();
 	configure_lvgl();
 	
-	RTT_init(4, 4, RTT_MR_ALMIEN);  // inicializa rtt com alarme
+	uint32_t current_hour, current_min, current_sec;
+	uint32_t current_year, current_month, current_day, current_week;
+	calendar rtc_initial = {2018, 3, 19, 12, 15, 45, 1};
+	RTC_init(RTC, ID_RTC, rtc_initial, RTC_IER_ALREN);
+	//RTT_init(4, 4, RTT_MR_ALMIEN);  // inicializa rtt com alarme
+    rtc_get_time(RTC, &current_hour, &current_min, &current_sec);
+    rtc_get_date(RTC, &current_year, &current_month, &current_day, &current_week);
+    
+    /* configura alarme do RTC para daqui 20 segundos */
+    rtc_set_date_alarm(RTC, 1, current_month, 1, current_day);
+    rtc_set_time_alarm(RTC, 1, current_hour, 1, current_min, 1, current_sec + 1);
 
 	/* Create task to control oled */
 	if (xTaskCreate(task_lcd, "LCD", TASK_LCD_STACK_SIZE, NULL, TASK_LCD_STACK_PRIORITY, NULL) != pdPASS) {

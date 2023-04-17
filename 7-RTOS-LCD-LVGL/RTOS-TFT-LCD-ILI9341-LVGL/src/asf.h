@@ -102,8 +102,8 @@
 // From module: Part identification macros
 #include <parts.h>
 
-// From module: RTT - Real Time Timer
-#include <rtt.h>
+// From module: RTC - Real Time Clock
+#include <rtc.h>
 
 // From module: SAM FPU driver
 #include <fpu.h>
