@@ -622,6 +622,8 @@ src\ASF\thirdparty\lvgl8\tests\unity\unity.c
 
 src\ASF\thirdparty\lvgl8\tests\unity\unity_support.c
 
+src\Decimal.c
+
 src\dseg35.c
 
 src\dseg40.c
