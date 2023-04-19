@@ -40,6 +40,7 @@ volatile lv_obj_t *labelBtn3;
 volatile lv_obj_t *labelBtn4;
 volatile lv_obj_t *labelBtn5;
 volatile lv_obj_t *labelPowerOn;
+volatile lv_obj_t *labelClock;
 volatile int minutes = 0;
 volatile int hours = 0;
 volatile int seconds = 0;
@@ -94,7 +95,7 @@ void RTC_Handler(void) {
 	if ((ul_status & RTC_SR_SEC) == RTC_SR_SEC) {
 		// o código para irq de segundo vem aqui
 		if (flag_minutes == 0){
-			seconds += 2;
+			seconds ++;
 			if (seconds >= 60){
 				seconds = 0;
 				minutes ++;
@@ -104,8 +105,6 @@ void RTC_Handler(void) {
 				minutes = 0;
 			}
 		}
-		calendar rtc_initial = {2018, 3, 19, 12, 15, 45, 1};
-		RTC_init(RTC, ID_RTC, rtc_initial, RTC_IER_ALREN);
 	}
 	
 	/* Time or date alarm */
@@ -155,27 +154,38 @@ static void event_handler(lv_event_t * e) {
 	}
 }
 
+void int2str(void){
+	char char_minute[3] = "";
+	char char_hour[3] = "";
+	minutes;
+	hours;
+	
+	sprintf(minutes, "%d", hours);
+	printf("%s", char_minute);
+}
+
 static void up_handler(lv_event_t *e){
 	lv_event_code_t code = lv_event_get_code(e);
 	char *c;
 	float temp;
 	if (code == LV_EVENT_CLICKED) {
-		if (flag_minutes == 0){
-			c = lv_label_get_text(labelFloor2);
-			temp = atoi(c);
-			temp += 0.5;
-			int intPart = (int) temp;
-			double decimalPart = temp - intPart;
-			lv_label_set_text_fmt(labelFloor2, "%02d", intPart);
-		}
-		if (flag_minutes == 1){
-			minutes ++;
-			lv_label_set_text_fmt(labelFloor3, "%02d", minutes);
-		}
-		if (flag_minutes == 2){
-			hours ++;
-			lv_label_set_text_fmt(labelFloor4, "%02d", hours);
-		}
+		int2str();
+// 		if (flag_minutes == 0){
+// 			c = lv_label_get_text(labelFloor2);
+// 			temp = atoi(c);
+// 			temp += 0.5;
+// 			int intPart = (int) temp;
+// 			double decimalPart = temp - intPart;
+// 			lv_label_set_text_fmt(labelFloor2, "%02d", intPart);
+// 		}
+// 		if (flag_minutes == 1){
+// 			minutes ++;
+// 			lv_label_set_text_fmt(labelFloor3, "%02d", minutes);
+// 		}
+// 		if (flag_minutes == 2){
+// 			hours ++;
+// 			lv_label_set_text_fmt(labelFloor4, "%02d", hours);
+// 		}
 	}
 }
 
@@ -215,7 +225,7 @@ void minutes_handler(lv_event_t *e){
 }
 
 void turn_on(void){
-	lv_obj_set_style_text_color(labelPowerOn;, LV_COLOR_SCREEN_TRANSP(), LV_STATE_DEFAULT);
+	//lv_obj_set_style_text_color(labelPowerOn;, LV_COLOR_SCREEN_TRANSP(), LV_STATE_DEFAULT);
 }
 
 void turn_off(void){
@@ -230,7 +240,6 @@ void turn_off(void){
 	lv_obj_set_style_text_color(labelBtn3, lv_color_black(), LV_STATE_DEFAULT);
 	lv_obj_set_style_text_color(labelBtn4, lv_color_black(), LV_STATE_DEFAULT);
 	lv_obj_set_style_text_color(labelBtn5, lv_color_black(), LV_STATE_DEFAULT);
-	lv_de
 }
 
 void power_handler(lv_event_t *e){
@@ -245,11 +254,7 @@ void power_handler(lv_event_t *e){
 	}
 }
 
-/************************************************************************/
-/* TASKS                                                                */
-/************************************************************************/
-
-void lv_termostato(void){
+void header(void){
 	//Criando Termo1
 	labelFloor = lv_label_create(lv_scr_act());
 	lv_obj_align(labelFloor, LV_ALIGN_LEFT_MID, 35 , -45);
@@ -271,19 +276,23 @@ void lv_termostato(void){
 	lv_obj_set_style_text_color(labelFloor2, lv_color_white(), LV_STATE_DEFAULT);
 	lv_label_set_text_fmt(labelFloor2, "%02d", 22);
 	
-	//Criando minutos
-	labelFloor3 = lv_label_create(lv_scr_act());
-	lv_obj_align(labelFloor3, LV_ALIGN_TOP_RIGHT, 0 , 0);
-	lv_obj_set_style_text_font(labelFloor3, &dseg35, LV_STATE_DEFAULT);
-	lv_obj_set_style_text_color(labelFloor3, lv_color_white(), LV_STATE_DEFAULT);
-	lv_label_set_text_fmt(labelFloor3, "%02d", 49);
+	//Criando Clock
+	labelClock = lv_label_create(lv_scr_act());
+	lv_label_set_text(labelClock, "00:00");
+	lv_obj_align(labelClock, LV_ALIGN_TOP_RIGHT, 0, 0);
+	static lv_style_t styleClock;
+	lv_obj_set_style_text_font(labelClock, &dseg35, LV_STATE_DEFAULT);
+	lv_obj_set_style_text_color(labelClock, lv_color_white(), LV_STATE_DEFAULT);
+}
+
+void lv_termostato(void){
+	header();
 	
-	//Criando horas
-	labelFloor4 = lv_label_create(lv_scr_act());
-	lv_obj_align_to(labelFloor4, labelFloor3, LV_ALIGN_LEFT_MID,-55,-3);
-	lv_obj_set_style_text_font(labelFloor4, &dseg35, LV_STATE_DEFAULT);
-	lv_obj_set_style_text_color(labelFloor4, lv_color_white(), LV_STATE_DEFAULT);
-	lv_label_set_text_fmt(labelFloor4, "%02d", 17);
+	
+	
+	
+
+	
 	
 	//Criando Estilo
 	static lv_style_t style;
@@ -394,10 +403,6 @@ static void task_rtt(void *pvParameters){
 	}
 }
 
-/************************************************************************/
-/* configs                                                              */
-/************************************************************************/
-
 static void configure_lcd(void) {
 	/**LCD pin configure on SPI*/
 	pio_configure_pin(LCD_SPI_MISO_PIO, LCD_SPI_MISO_FLAGS);  //
@@ -426,10 +431,6 @@ static void configure_console(void) {
 	setbuf(stdout, NULL);
 }
 
-/************************************************************************/
-/* port lvgl                                                            */
-/************************************************************************/
-
 void my_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p) {
 	ili9341_set_top_left_limit(area->x1, area->y1);   ili9341_set_bottom_right_limit(area->x2, area->y2);
 	ili9341_copy_pixels_to_screen(color_p,  (area->x2 + 1 - area->x1) * (area->y2 + 1 - area->y1));
@@ -451,8 +452,6 @@ void my_input_read(lv_indev_drv_t * drv, lv_indev_data_t*data) {
 	data->point.y = py;
 }
 
-
-
 void configure_lvgl(void) {
 	lv_init();
 	lv_disp_draw_buf_init(&disp_buf, buf_1, NULL, LV_HOR_RES_MAX * LV_VER_RES_MAX);
@@ -473,9 +472,6 @@ void configure_lvgl(void) {
 	lv_indev_t * my_indev = lv_indev_drv_register(&indev_drv);
 }
 
-/************************************************************************/
-/* main                                                                 */
-/************************************************************************/
 int main(void) {
 	/* board and sys init */
 	board_init();
@@ -490,7 +486,7 @@ int main(void) {
 	uint32_t current_hour, current_min, current_sec;
 	uint32_t current_year, current_month, current_day, current_week;
 	calendar rtc_initial = {2018, 3, 19, 12, 15, 45, 1};
-	RTC_init(RTC, ID_RTC, rtc_initial, RTC_IER_ALREN);
+	RTC_init(RTC, ID_RTC, rtc_initial, RTC_IER_SECEN);
 	//RTT_init(4, 4, RTT_MR_ALMIEN);  // inicializa rtt com alarme
     rtc_get_time(RTC, &current_hour, &current_min, &current_sec);
     rtc_get_date(RTC, &current_year, &current_month, &current_day, &current_week);
