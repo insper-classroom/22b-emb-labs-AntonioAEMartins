@@ -466,8 +466,6 @@ void lv_termostato(void){
 	lv_obj_set_height(btn5, 60);
 }
 
-
-
 void lv_sleep(void){
 	//M Button
 	
