@@ -46,6 +46,7 @@ volatile int hours = 0;
 volatile int seconds = 0;
 volatile int flag_minutes = 0;
 volatile int flag_power = 1;
+volatile int clock_blink = 1;
 
 typedef struct  {
 	uint32_t year;
@@ -105,6 +106,7 @@ void RTC_Handler(void) {
 				minutes = 0;
 			}
 		}
+		clock_blink = !clock_blink;
 	}
 	
 	/* Time or date alarm */
@@ -154,14 +156,10 @@ static void event_handler(lv_event_t * e) {
 	}
 }
 
-void int2str(void){
-	char char_minute[3] = "";
-	char char_hour[3] = "";
-	minutes;
-	hours;
-	
-	sprintf(minutes, "%d", hours);
-	printf("%s", char_minute);
+char* int2str(void){
+// 
+// 	printf("%s\n", char_hour);
+// 	return char_hour;
 }
 
 static void up_handler(lv_event_t *e){
@@ -169,23 +167,20 @@ static void up_handler(lv_event_t *e){
 	char *c;
 	float temp;
 	if (code == LV_EVENT_CLICKED) {
-		int2str();
-// 		if (flag_minutes == 0){
-// 			c = lv_label_get_text(labelFloor2);
-// 			temp = atoi(c);
-// 			temp += 0.5;
-// 			int intPart = (int) temp;
-// 			double decimalPart = temp - intPart;
-// 			lv_label_set_text_fmt(labelFloor2, "%02d", intPart);
-// 		}
-// 		if (flag_minutes == 1){
-// 			minutes ++;
-// 			lv_label_set_text_fmt(labelFloor3, "%02d", minutes);
-// 		}
-// 		if (flag_minutes == 2){
-// 			hours ++;
-// 			lv_label_set_text_fmt(labelFloor4, "%02d", hours);
-// 		}
+		if (flag_minutes == 0){
+			c = lv_label_get_text(labelFloor2);
+			temp = atoi(c);
+			temp += 0.5;
+			int intPart = (int) temp;
+			double decimalPart = temp - intPart;
+			lv_label_set_text_fmt(labelFloor2, "%02d", intPart);
+		}
+		if (flag_minutes == 1){
+			minutes ++;
+		}
+		if (flag_minutes == 2){
+			hours ++;
+		}
 	}
 }
 
@@ -204,11 +199,9 @@ static void down_handler(lv_event_t *e){
 		}
 		if (flag_minutes == 1){
 			minutes --;
-			lv_label_set_text_fmt(labelFloor3, "%02d", minutes);
 		}
 		if (flag_minutes == 2){
 			hours --;
-			lv_label_set_text_fmt(labelFloor4, "%02d", hours);
 		}
 	}
 }
@@ -387,19 +380,27 @@ static void task_lcd(void *pvParameters) {
 }
 
 static void task_rtt(void *pvParameters){
+	
 	for(;;){
-		//RTT_init(4, 4, RTT_MR_ALMIEN);
-		if (flag_minutes == 0){
-			lv_label_set_text_fmt(labelFloor4, "%02d", hours);
-			lv_label_set_text_fmt(labelFloor3, "%02d", minutes);
+		char char_minute[3] = "";
+		char char_hour[6] = "";
+/*		char separete[2] = " ";*/
+
+		sprintf(char_minute, "%02d", minutes);
+		sprintf(char_hour, "%02d", hours);
+		
+		printf("%d", clock_blink);
+		if (clock_blink){
+			strcat(char_hour, " ");
+		} else {
+			strcat(char_hour, ":");
 		}
-		if (flag_minutes == 1){
-			lv_label_set_text_fmt(labelFloor4, "%02d", hours);
-		}
-		if (flag_minutes == 2){
-			lv_label_set_text_fmt(labelFloor3, "%02d", minutes);
-		}
-		vTaskDelay(500);
+		
+		
+		
+		strcat(char_hour, char_minute);
+		lv_label_set_text_fmt(labelClock, "%s", char_hour);
+		vTaskDelay(100);
 	}
 }
 
