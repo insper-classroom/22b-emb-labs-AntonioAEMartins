@@ -217,33 +217,9 @@ void minutes_handler(lv_event_t *e){
 	}
 }
 
-void turn_on(void){
-	//lv_obj_set_style_text_color(labelPowerOn;, LV_COLOR_SCREEN_TRANSP(), LV_STATE_DEFAULT);
-}
-
-void turn_off(void){
-	lv_obj_set_style_text_color(labelFloor, lv_color_black(), LV_STATE_DEFAULT);
-	lv_obj_set_style_text_color(labelDecimal, lv_color_black(), LV_STATE_DEFAULT);
-	lv_obj_set_style_text_color(labelPoint, lv_color_black(), LV_STATE_DEFAULT);
-	lv_obj_set_style_text_color(labelFloor2, lv_color_black(), LV_STATE_DEFAULT);
-	lv_obj_set_style_text_color(labelFloor3, lv_color_black(), LV_STATE_DEFAULT);
-	lv_obj_set_style_text_color(labelFloor4, lv_color_black(), LV_STATE_DEFAULT);
-	lv_obj_set_style_text_color(labelpower, lv_color_black(), LV_STATE_DEFAULT);
-	lv_obj_set_style_text_color(labelBtn2, lv_color_black(), LV_STATE_DEFAULT);
-	lv_obj_set_style_text_color(labelBtn3, lv_color_black(), LV_STATE_DEFAULT);
-	lv_obj_set_style_text_color(labelBtn4, lv_color_black(), LV_STATE_DEFAULT);
-	lv_obj_set_style_text_color(labelBtn5, lv_color_black(), LV_STATE_DEFAULT);
-}
-
 void power_handler(lv_event_t *e){
 	lv_event_code_t code = lv_event_get_code(e);
 	if (code == LV_EVENT_CLICKED){
-		printf("Inverteu");
-		flag_power = !flag_power;
-		if (flag_power == 0){
-			turn_off();
-			lv_sleep();
-		}
 	}
 }
 
@@ -257,10 +233,10 @@ void header(void){
 	
 	//Criando Termo1-Decimal
 	labelDecimal = lv_label_create(lv_scr_act());
-	lv_obj_align(labelDecimal, LV_ALIGN_LEFT_MID, 35 , -45);
-	lv_obj_set_style_text_font(labelDecimal, &dseg70, LV_STATE_DEFAULT);
+	lv_obj_align_to(labelDecimal, labelFloor, LV_ALIGN_RIGHT_MID, 50, 13);
+	lv_obj_set_style_text_font(labelDecimal, &dseg35, LV_STATE_DEFAULT);
 	lv_obj_set_style_text_color(labelDecimal, lv_color_white(), LV_STATE_DEFAULT);
-	lv_label_set_text_fmt(labelDecimal, "%d", 5);
+	lv_label_set_text(labelDecimal, ".5");
 	
 	//Criando Termo2 | labelSetValue
 	labelFloor2 = lv_label_create(lv_scr_act());
@@ -280,13 +256,6 @@ void header(void){
 
 void lv_termostato(void){
 	header();
-	
-	
-	
-	
-
-	
-	
 	//Criando Estilo
 	static lv_style_t style;
 	lv_style_init(&style);
@@ -389,14 +358,11 @@ static void task_rtt(void *pvParameters){
 		sprintf(char_minute, "%02d", minutes);
 		sprintf(char_hour, "%02d", hours);
 		
-		printf("%d", clock_blink);
 		if (clock_blink){
 			strcat(char_hour, " ");
 		} else {
 			strcat(char_hour, ":");
 		}
-		
-		
 		
 		strcat(char_hour, char_minute);
 		lv_label_set_text_fmt(labelClock, "%s", char_hour);
