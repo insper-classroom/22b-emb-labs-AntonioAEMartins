@@ -2283,9 +2283,6 @@
     <Compile Include="src\config\conf_touch.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\Decimal.c">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\dseg35.c">
       <SubType>compile</SubType>
     </Compile>
@@ -2296,6 +2293,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\dseg70.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\symbols.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\touch\touch.c">

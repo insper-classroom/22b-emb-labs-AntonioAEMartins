@@ -16,6 +16,7 @@ LV_FONT_DECLARE(dseg70);
 LV_FONT_DECLARE(dseg55);
 LV_FONT_DECLARE(dseg35);
 LV_FONT_DECLARE(dseg40);
+LV_FONT_DECLARE(symbols);
 
 #define LV_HOR_RES_MAX          (320)
 #define LV_VER_RES_MAX          (240)
@@ -43,6 +44,7 @@ volatile lv_obj_t *labelPowerOn;
 volatile lv_obj_t *labelClock;
 volatile lv_obj_t *labelToggle;
 volatile lv_obj_t *btn6;
+volatile lv_obj_t *labelEnd;
 volatile int minutes = 0;
 volatile int hours = 0;
 volatile int seconds = 0;
@@ -306,6 +308,7 @@ void header(void){
 	static lv_style_t styleClock;
 	lv_obj_set_style_text_font(labelClock, &dseg35, LV_STATE_DEFAULT);
 	lv_obj_set_style_text_color(labelClock, lv_color_white(), LV_STATE_DEFAULT);
+
 	
 	toggle_button();	
 }
@@ -334,7 +337,7 @@ void lv_termostato(void){
 	//M Button
 	
 	lv_obj_t *btn2 = lv_btn_create(lv_scr_act());
-	lv_obj_add_event_cb(btn2, minutes_handler, LV_EVENT_ALL, NULL);
+	lv_obj_add_event_cb(btn2, event_handler, LV_EVENT_ALL, NULL);
 	
 	lv_obj_align_to(btn2, btn1, LV_ALIGN_RIGHT_MID, 40, -10);
 	labelBtn2 = lv_label_create(btn2);
@@ -345,14 +348,23 @@ void lv_termostato(void){
 	//Clock Button
 	
 	lv_obj_t *btn3 = lv_btn_create(lv_scr_act());
-	lv_obj_add_event_cb(btn3, event_handler, LV_EVENT_ALL, NULL);
+	lv_obj_add_event_cb(btn3, minutes_handler, LV_EVENT_ALL, NULL);
 	
 	lv_obj_align_to(btn3, btn2, LV_ALIGN_RIGHT_MID, 40, -13);
 	labelBtn3 = lv_label_create(btn3);
-	lv_label_set_text(labelBtn3, LV_SYMBOL_REFRESH "  ]");
+	lv_label_set_text(labelBtn3,  "\xE2\x8C\x9A");
 	lv_obj_center(labelBtn3);
 	lv_obj_add_style(btn3, &style, 0);
+	lv_obj_set_style_text_font(labelBtn3, &symbols, LV_STATE_DEFAULT);
+	lv_obj_set_style_text_color(labelBtn3, lv_color_white(), LV_STATE_DEFAULT);
 	
+	// ]
+	labelEnd = lv_label_create(lv_scr_act());
+	lv_label_set_text(labelEnd, "]");
+	lv_obj_align_to(labelEnd, btn3, LV_ALIGN_RIGHT_MID, 24, 0);
+	lv_obj_set_style_text_color(labelEnd, lv_color_white(), LV_STATE_DEFAULT);
+	
+
 	//Up Arrow Button
 	
 	lv_obj_t *btn4 = lv_btn_create(lv_scr_act());
