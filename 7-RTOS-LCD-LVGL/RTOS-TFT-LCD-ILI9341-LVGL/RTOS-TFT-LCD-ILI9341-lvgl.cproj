@@ -867,6 +867,12 @@
     <Folder Include="src\touch\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\ariel.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\ariel14.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\ASF\sam\drivers\rtc\rtc.c">
       <SubType>compile</SubType>
     </Compile>
@@ -2283,9 +2289,6 @@
     <Compile Include="src\config\conf_touch.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\Decimal.c">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\dseg35.c">
       <SubType>compile</SubType>
     </Compile>
@@ -2296,6 +2299,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\dseg70.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\symbols.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\touch\touch.c">

@@ -2,6 +2,10 @@
 # Automatically-generated file. Do not edit or delete the file
 ################################################################################
 
+src\ariel.c
+
+src\ariel14.c
+
 src\ASF\sam\drivers\rtc\rtc.c
 
 src\ASF\thirdparty\lvgl8\examples\anim\lv_example_anim_1.c
@@ -622,8 +626,6 @@ src\ASF\thirdparty\lvgl8\tests\unity\unity.c
 
 src\ASF\thirdparty\lvgl8\tests\unity\unity_support.c
 
-src\Decimal.c
-
 src\dseg35.c
 
 src\dseg40.c
@@ -631,6 +633,8 @@ src\dseg40.c
 src\dseg55.c
 
 src\dseg70.c
+
+src\symbols.c
 
 src\touch\touch.c
 
