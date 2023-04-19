@@ -17,6 +17,8 @@ LV_FONT_DECLARE(dseg55);
 LV_FONT_DECLARE(dseg35);
 LV_FONT_DECLARE(dseg40);
 LV_FONT_DECLARE(symbols);
+LV_FONT_DECLARE(ariel14);
+LV_FONT_DECLARE(ariel);
 
 #define LV_HOR_RES_MAX          (320)
 #define LV_VER_RES_MAX          (240)
@@ -45,6 +47,17 @@ volatile lv_obj_t *labelClock;
 volatile lv_obj_t *labelToggle;
 volatile lv_obj_t *btn6;
 volatile lv_obj_t *labelEnd;
+// Labels
+volatile lv_obj_t *labelMonday;
+volatile lv_obj_t *labelFloorTemp;
+volatile lv_obj_t *labelSET;
+volatile lv_obj_t *labelConfig;
+volatile lv_obj_t *labelCel1;
+volatile lv_obj_t *labelCel2;
+volatile lv_obj_t *labelHome;
+
+
+
 volatile int minutes = 0;
 volatile int hours = 0;
 volatile int seconds = 0;
@@ -169,15 +182,13 @@ char* int2str(void){
 static void up_handler(lv_event_t *e){
 	lv_event_code_t code = lv_event_get_code(e);
 	char *c;
-	float temp;
+	int temp;
 	if (code == LV_EVENT_CLICKED) {
 		if (flag_minutes == 0){
 			c = lv_label_get_text(labelFloor2);
 			temp = atoi(c);
-			temp += 0.5;
-			int intPart = (int) temp;
-			double decimalPart = temp - intPart;
-			lv_label_set_text_fmt(labelFloor2, "%02d", intPart);
+			temp += 1;
+			lv_label_set_text_fmt(labelFloor2, "%02d", temp);
 		}
 		if (flag_minutes == 1){
 			minutes ++;
@@ -191,15 +202,13 @@ static void up_handler(lv_event_t *e){
 static void down_handler(lv_event_t *e){
 	lv_event_code_t code = lv_event_get_code(e);
 	char *c;
-	float temp;
+	int temp;
 	if (code == LV_EVENT_CLICKED) {
 		if (flag_minutes == 0){
 			c = lv_label_get_text(labelFloor2);
 			temp = atoi(c);
-			temp -= 0.5;
-			int intPart = (int) temp;
-			double decimalPart = temp - intPart;
-			lv_label_set_text_fmt(labelFloor2, "%02d", intPart);
+			temp -= 1;
+			lv_label_set_text_fmt(labelFloor2, "%02d", temp);
 		}
 		if (flag_minutes == 1){
 			minutes --;
@@ -238,6 +247,14 @@ void power_handler(lv_event_t *e){
 			lv_obj_add_flag(labelBtn4, LV_OBJ_FLAG_HIDDEN);
 			lv_obj_add_flag(labelBtn5, LV_OBJ_FLAG_HIDDEN);
 			lv_obj_add_flag(labelpower, LV_OBJ_FLAG_HIDDEN);
+			lv_obj_add_flag(labelHome, LV_OBJ_FLAG_HIDDEN);
+			lv_obj_add_flag(labelFloorTemp, LV_OBJ_FLAG_HIDDEN);
+			lv_obj_add_flag(labelMonday, LV_OBJ_FLAG_HIDDEN);
+			lv_obj_add_flag(labelConfig, LV_OBJ_FLAG_HIDDEN);
+			lv_obj_add_flag(labelCel1, LV_OBJ_FLAG_HIDDEN);
+			lv_obj_add_flag(labelCel2, LV_OBJ_FLAG_HIDDEN);
+			lv_obj_add_flag(labelEnd, LV_OBJ_FLAG_HIDDEN);
+			lv_obj_add_flag(labelSET, LV_OBJ_FLAG_HIDDEN);
 			lv_obj_align(btn6, LV_ALIGN_CENTER, 0, 0);
 			
 			
@@ -253,6 +270,14 @@ void power_handler(lv_event_t *e){
 			lv_obj_clear_flag(labelBtn4, LV_OBJ_FLAG_HIDDEN);
 			lv_obj_clear_flag(labelBtn5, LV_OBJ_FLAG_HIDDEN);
 			lv_obj_clear_flag(labelpower, LV_OBJ_FLAG_HIDDEN);
+			lv_obj_clear_flag(labelHome, LV_OBJ_FLAG_HIDDEN);
+			lv_obj_clear_flag(labelFloorTemp, LV_OBJ_FLAG_HIDDEN);
+			lv_obj_clear_flag(labelMonday, LV_OBJ_FLAG_HIDDEN);
+			lv_obj_clear_flag(labelConfig, LV_OBJ_FLAG_HIDDEN);
+			lv_obj_clear_flag(labelCel1, LV_OBJ_FLAG_HIDDEN);
+			lv_obj_clear_flag(labelCel2, LV_OBJ_FLAG_HIDDEN);
+			lv_obj_clear_flag(labelEnd, LV_OBJ_FLAG_HIDDEN);
+			lv_obj_clear_flag(labelSET, LV_OBJ_FLAG_HIDDEN);
 			lv_obj_align(btn6, LV_ALIGN_CENTER, 500, 0);
 
 		}
@@ -282,22 +307,22 @@ void toggle_button(void){
 void header(void){
 	//Criando Termo1
 	labelFloor = lv_label_create(lv_scr_act());
-	lv_obj_align(labelFloor, LV_ALIGN_LEFT_MID, 35 , -45);
+	lv_obj_align(labelFloor, LV_ALIGN_LEFT_MID, 40 , -45);
 	lv_obj_set_style_text_font(labelFloor, &dseg70, LV_STATE_DEFAULT);
 	lv_obj_set_style_text_color(labelFloor, lv_color_white(), LV_STATE_DEFAULT);
 	lv_label_set_text_fmt(labelFloor, "%02d", 23);
 	
 	//Criando Termo1-Decimal
 	labelDecimal = lv_label_create(lv_scr_act());
-	lv_obj_align_to(labelDecimal, labelFloor, LV_ALIGN_RIGHT_MID, 58, 11);
+	lv_obj_align_to(labelDecimal, labelFloor, LV_ALIGN_RIGHT_MID, 55, 7);
 	lv_obj_set_style_text_font(labelDecimal, &dseg40, LV_STATE_DEFAULT);
 	lv_obj_set_style_text_color(labelDecimal, lv_color_white(), LV_STATE_DEFAULT);
 	lv_label_set_text_fmt(labelDecimal, ".%d", 5);
 	
 	//Criando Termo2 | labelSetValue
 	labelFloor2 = lv_label_create(lv_scr_act());
-	lv_obj_align(labelFloor2, LV_ALIGN_RIGHT_MID, 0 , -45);
-	lv_obj_set_style_text_font(labelFloor2, &dseg55, LV_STATE_DEFAULT);
+	lv_obj_align(labelFloor2, LV_ALIGN_RIGHT_MID, -10 , -30);
+	lv_obj_set_style_text_font(labelFloor2, &dseg40, LV_STATE_DEFAULT);
 	lv_obj_set_style_text_color(labelFloor2, lv_color_white(), LV_STATE_DEFAULT);
 	lv_label_set_text_fmt(labelFloor2, "%02d", 22);
 	
@@ -309,12 +334,62 @@ void header(void){
 	lv_obj_set_style_text_font(labelClock, &dseg35, LV_STATE_DEFAULT);
 	lv_obj_set_style_text_color(labelClock, lv_color_white(), LV_STATE_DEFAULT);
 
-	
 	toggle_button();	
+}
+
+void lv_labels(void){
+	// Monday
+	labelMonday = lv_label_create(lv_scr_act());
+	lv_obj_align_to(labelMonday, labelFloor, LV_ALIGN_TOP_LEFT, 0, -25);
+	lv_obj_set_style_text_color(labelMonday, lv_color_white(), LV_STATE_DEFAULT);
+	lv_label_set_text(labelMonday, "MON");
+	lv_obj_set_style_text_font(labelMonday, &ariel14, LV_STATE_DEFAULT);
+	
+	// Floor Temp
+	labelFloorTemp = lv_label_create(lv_scr_act());
+	lv_obj_align_to(labelFloorTemp, labelFloor, LV_ALIGN_LEFT_MID, -40, 0);
+	lv_obj_set_style_text_color(labelFloorTemp, lv_color_white(), LV_STATE_DEFAULT);
+	lv_label_set_text(labelFloorTemp, "FLOOR\n\nTEMP");
+	lv_obj_set_style_text_font(labelFloorTemp, &ariel14, LV_STATE_DEFAULT);
+	
+	// Celcius - Principal
+	labelCel1 = lv_label_create(lv_scr_act());
+	lv_obj_align_to(labelCel1, labelDecimal, LV_ALIGN_TOP_LEFT, 05, -30);
+	lv_obj_set_style_text_color(labelCel1, lv_color_white(), LV_STATE_DEFAULT);
+	lv_label_set_text(labelCel1, "\u00B0C");
+	lv_obj_set_style_text_font(labelCel1, &ariel, LV_STATE_DEFAULT);
+	
+	// Celcius - Sec
+	labelCel2 = lv_label_create(lv_scr_act());
+	lv_obj_align_to(labelCel2, labelFloor2, LV_ALIGN_TOP_RIGHT, 30, -15);
+	lv_obj_set_style_text_color(labelCel2, lv_color_white(), LV_STATE_DEFAULT);
+	lv_label_set_text(labelCel2, "\u00B0C");
+	lv_obj_set_style_text_font(labelCel2, &ariel14, LV_STATE_DEFAULT);
+	
+	//Config
+	labelConfig = lv_label_create(lv_scr_act());
+	lv_obj_align_to(labelConfig, labelFloor2, LV_ALIGN_LEFT_MID, -35, -10);
+	lv_obj_set_style_text_color(labelConfig, lv_color_white(), LV_STATE_DEFAULT);
+	lv_label_set_text(labelConfig, LV_SYMBOL_SETTINGS);
+	
+	//SET
+	labelSET = lv_label_create(lv_scr_act());
+	lv_obj_align_to(labelSET, labelConfig, LV_ALIGN_BOTTOM_MID, 10, 35);
+	lv_obj_set_style_text_color(labelSET, lv_color_white(), LV_STATE_DEFAULT);
+	lv_label_set_text(labelSET, "SET");
+	lv_obj_set_style_text_font(labelSET, &ariel14, LV_STATE_DEFAULT);
+	
+	//Home
+	labelHome = lv_label_create(lv_scr_act());
+	lv_obj_align_to(labelHome, labelClock, LV_ALIGN_TOP_MID, -50, 130);
+	lv_obj_set_style_text_color(labelHome, lv_color_white(), LV_STATE_DEFAULT);
+	lv_label_set_text(labelHome, LV_SYMBOL_HOME);
+	
 }
 
 void lv_termostato(void){
 	header();
+	lv_labels();
 	//Criando Estilo
 	static lv_style_t style;
 	lv_style_init(&style);
@@ -390,6 +465,8 @@ void lv_termostato(void){
 	lv_obj_set_width(btn5, 60);
 	lv_obj_set_height(btn5, 60);
 }
+
+
 
 void lv_sleep(void){
 	//M Button

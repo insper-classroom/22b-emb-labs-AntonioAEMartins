@@ -867,6 +867,12 @@
     <Folder Include="src\touch\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\ariel.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\ariel14.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\ASF\sam\drivers\rtc\rtc.c">
       <SubType>compile</SubType>
     </Compile>

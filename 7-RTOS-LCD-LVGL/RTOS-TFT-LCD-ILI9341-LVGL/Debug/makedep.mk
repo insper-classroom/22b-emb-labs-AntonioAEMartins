@@ -2,6 +2,10 @@
 # Automatically-generated file. Do not edit or delete the file
 ################################################################################
 
+src\ariel.c
+
+src\ariel14.c
+
 src\ASF\sam\drivers\rtc\rtc.c
 
 src\ASF\thirdparty\lvgl8\examples\anim\lv_example_anim_1.c
