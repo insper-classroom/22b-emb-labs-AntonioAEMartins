@@ -4,6 +4,7 @@
 #include "gfx_mono_ug_2832hsweg04.h"
 #include "gfx_mono_text.h"
 #include "sysfont.h"
+#include <string.h>
 
 /* Botao da placa */
 
@@ -38,9 +39,10 @@ extern void vApplicationIdleHook(void);
 extern void vApplicationTickHook(void);
 extern void vApplicationMallocFailedHook(void);
 extern void xPortSysTickHandler(void);
-extern float lista_distancia[10] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
-extern int lista_eixo_max[10] = {12,24,36,48,60,72,84,96,108};
-extern int lista_eixo_min[10] = {0,12,24,36,48,60,72,84,96,108};
+
+volatile int global_seconds;
+volatile int global_minutes;
+volatile int global_hours;
 	
 typedef struct  {
 	uint32_t year;
@@ -114,8 +116,6 @@ static void RTT_init(float freqPrescale, uint32_t IrqNPulses, uint32_t rttIRQSou
 	rtt_disable_interrupt(RTT, RTT_MR_RTTINCIEN | RTT_MR_ALMIEN);
 }
 
-
-
 void RTT_Handler(void){
 	uint32_t ul_status;
 	ul_status = rtt_get_status(RTT);
@@ -135,6 +135,17 @@ void TC7_Handler(void) {
 
 	/** Muda o estado do LED (pisca) **/
 	xSemaphoreGiveFromISR(xSemaphoreTC, &xHigherPriorityTaskWoken);
+}
+
+void TC4_Handler(void) {
+	/**
+	* Devemos indicar ao TC que a interrupção foi satisfeita.
+	* Isso é realizado pela leitura do status do periférico
+	**/
+	volatile uint32_t status = tc_get_status(TC1, 1);
+
+	/** Muda o estado do LED (pisca) **/
+	xSemaphoreGiveFromISR(xSemaphoreRTC, &xHigherPriorityTaskWoken);
 }
 
 void RTC_Handler(void) {
@@ -224,9 +235,21 @@ void led_pisca(int led){
 
 static void task_oled(void *pvParameters){
 	gfx_mono_ssd1306_init();
+	char char_minutes[3] = "";
+	char char_seconds[3] = "";
+	char char_hours[12] = "";
 	
 	for(;;){
-		vTaskDelay(1000);
+		rtc_get_time(RTC, &global_hours, &global_minutes, &global_seconds);
+		sprintf(char_minutes, "%d", global_minutes);
+		sprintf(char_seconds, "%d", global_seconds);
+		sprintf(char_hours, "%d", global_hours);
+		strcat(char_hours, ":");
+		strcat(char_hours, char_minutes);
+		strcat(char_hours, ":");
+		strcat(char_hours, char_seconds);
+		gfx_mono_draw_string(char_hours, 0, 0, &sysfont);
+		vTaskDelay(500);
 	}
 }
 
@@ -296,7 +319,7 @@ void led_init(){
 
 void but_callback1(void){
 	printf("Entrou");
-	calendar rtc_initial = {2018, 3, 19, 12, 15, 45 ,1};
+	calendar rtc_initial = {2023, 4, 24, 17, 8, 55 ,1};
 	RTC_init(RTC, ID_RTC, rtc_initial, RTC_IER_SECEN);
 	
 	/* Leitura do valor atual do RTC */
@@ -307,7 +330,7 @@ void but_callback1(void){
 	
 	/* configura alarme do RTC para daqui 20 segundos */
 	rtc_set_date_alarm(RTC, 1, current_month, 1, current_day);
-	rtc_set_time_alarm(RTC, 1, current_hour, 1, current_min, 1, current_sec + 20);
+	rtc_set_time_alarm(RTC, 1, current_hour, 1, current_min, 1, current_sec + 1);
 	
 	printf("Inicializou o RTC\n");
 }
@@ -373,7 +396,12 @@ int main(void) {
 	TC_init(TC2, ID_TC7, 1, 4);
 	tc_start(TC2, 1);
 	
+	TC_init(TC1, ID_TC4, 1, 4);
+	tc_start(TC1, 1);
+	
 	RTT_init(4, 16, RTT_MR_ALMIEN);
+	calendar rtc_initial = {2023, 4, 24, 17, 8, 55 ,1};
+	RTC_init(RTC, ID_RTC, rtc_initial, RTC_IER_SECEN);
 	/* Start the scheduler. */
 	vTaskStartScheduler();
 	/* RTOS não deve chegar aqui !! */
