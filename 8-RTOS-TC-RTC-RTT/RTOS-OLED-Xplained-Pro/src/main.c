@@ -184,7 +184,11 @@ void TC4_Handler(void) {
 			xSemaphoreGiveFromISR(xSemaphoreRTC, &xHigherPriorityTaskWoken);
 		}
 	}
+<<<<<<< Updated upstream
 } 
+=======
+}
+>>>>>>> Stashed changes
 
 void RTC_Handler(void) {
 	uint32_t ul_status = rtc_get_status(RTC);
@@ -287,13 +291,13 @@ static void task_oled(void *pvParameters){
 		strcat(char_hours, ":");
 		strcat(char_hours, char_seconds);
 		gfx_mono_draw_string(char_hours, 0, 0, &sysfont);
-		vTaskDelay(500);
+		pmc_sleep(SLEEPMGR_SLEEP_WFI);
 	}
 }
 
 static void task_sensor(void *pvParameters){
 	for (;;)  {
-		vTaskDelay(1000);
+		pmc_sleep(SLEEPMGR_SLEEP_WFI);
 	}
 }
 
@@ -434,6 +438,10 @@ static void task_rtc(void *pvParameters){
 		if (xSemaphoreTake(xSemaphoreRTC, 100)){
 			led_pisca(3);
 		}
+<<<<<<< Updated upstream
+=======
+		pmc_sleep(SLEEPMGR_SLEEP_WFI);
+>>>>>>> Stashed changes
 	}
 		pmc_sleep(SLEEPMGR_SLEEP_WFI);
 }
@@ -534,8 +542,14 @@ int main(void) {
 	TC_init(TC2, ID_TC7, 1, 4);
 	tc_start(TC2, 1);
 	
+<<<<<<< Updated upstream
 	TC_init(TC1, ID_TC4, 1, 1);
 	tc_start(TC1, 1);
+=======
+	TC_init(TC1, ID_TC4, 1, 4);
+	tc_start(TC1, 1);
+	
+>>>>>>> Stashed changes
 	
 	RTT_init(4, 16, RTT_MR_ALMIEN);
 	calendar rtc_initial = {2023, 4, 24, 17, 16, 15 ,1};

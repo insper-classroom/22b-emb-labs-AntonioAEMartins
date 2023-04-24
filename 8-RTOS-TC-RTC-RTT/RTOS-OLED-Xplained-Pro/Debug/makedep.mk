@@ -3,6 +3,11 @@
 ################################################################################
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+src\ASF\common\services\sleepmgr\sam\sleepmgr.c
+
+>>>>>>> Stashed changes
 src\ASF\sam\drivers\rtc\rtc.c
 =======
 <<<<<<< Updated upstream
