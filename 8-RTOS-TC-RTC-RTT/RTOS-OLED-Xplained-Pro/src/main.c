@@ -341,7 +341,6 @@ int main(void) {
 	button_init();
 	/* Initialize the console uart */
 	configure_console();
-	printf("Comecou\n");
 	
 	WDT->WDT_MR = WDT_MR_WDDIS;  
 	
