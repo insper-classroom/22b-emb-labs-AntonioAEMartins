@@ -185,14 +185,15 @@ src/oled/gfx_mono_text.d src/oled/gfx_mono_text.o: \
  ../src/ASF/common/services/ioport/ioport.h \
  ../src/ASF/common/services/ioport/sam/ioport_pio.h \
  ../src/ASF/sam/drivers/mpu/mpu.h ../src/ASF/sam/drivers/pmc/sleep.h \
- ../src/ASF/sam/drivers/rtt/rtt.h ../src/ASF/sam/utils/fpu/fpu.h \
+ ../src/ASF/sam/drivers/rtc/rtc.h ../src/ASF/sam/drivers/rtt/rtt.h \
+ ../src/ASF/sam/utils/fpu/fpu.h \
  ../src/ASF/sam/boards/same70_xplained/led.h \
  ../src/ASF/sam/drivers/spi/spi.h \
  ../src/ASF/common/utils/stdio/stdio_serial/stdio_serial.h \
  ../src/ASF/common/services/serial/serial.h \
  ../src/ASF/common/services/serial/sam_uart/uart_serial.h \
  ../src/ASF/sam/drivers/uart/uart.h ../src/ASF/sam/drivers/usart/usart.h \
- ../src/config/conf_uart_serial.h \
+ ../src/config/conf_uart_serial.h ../src/ASF/sam/drivers/tc/tc.h \
  ../src/ASF/sam/drivers/pio/pio_handler.h ../src/config/conf_board.h \
  ../src/oled/gfx_mono_framebuffer.h
 
@@ -580,6 +581,8 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 
 ../src/ASF/sam/drivers/pmc/sleep.h:
 
+../src/ASF/sam/drivers/rtc/rtc.h:
+
 ../src/ASF/sam/drivers/rtt/rtt.h:
 
 ../src/ASF/sam/utils/fpu/fpu.h:
@@ -599,6 +602,8 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 ../src/ASF/sam/drivers/usart/usart.h:
 
 ../src/config/conf_uart_serial.h:
+
+../src/ASF/sam/drivers/tc/tc.h:
 
 ../src/ASF/sam/drivers/pio/pio_handler.h:
 
