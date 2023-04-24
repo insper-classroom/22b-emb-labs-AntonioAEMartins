@@ -40,9 +40,20 @@ extern void vApplicationTickHook(void);
 extern void vApplicationMallocFailedHook(void);
 extern void xPortSysTickHandler(void);
 
+<<<<<<< Updated upstream
 volatile int global_seconds;
 volatile int global_minutes;
 volatile int global_hours;
+=======
+<<<<<<< Updated upstream
+=======
+volatile int global_seconds;
+volatile int global_minutes;
+volatile int global_hours;
+
+volatile int flag_tc_count;
+volatile int flag_tc_button = 0;
+>>>>>>> Stashed changes
 	
 typedef struct  {
 	uint32_t year;
@@ -64,6 +75,10 @@ SemaphoreHandle_t xSemaphoreRTC;
 
 BaseType_t xHigherPriorityTaskWoken = pdTRUE;
 
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 /** prototypes */
 void but_callback(void);
 static void BUT_init(void);
@@ -91,7 +106,39 @@ extern void vApplicationMallocFailedHook(void) {
 
 static void RTT_init(float freqPrescale, uint32_t IrqNPulses, uint32_t rttIRQSource) {
 
+<<<<<<< Updated upstream
 	uint16_t pllPreScale = (int) (((float) 32768) / freqPrescale);
+=======
+void but_callback(void) {
+}
+
+/************************************************************************/
+/* TASKS                                                                */
+/************************************************************************/
+
+static void task_oled(void *pvParameters) {
+  gfx_mono_ssd1306_init();
+  gfx_mono_draw_string("Exemplo RTOS", 0, 0, &sysfont);
+  gfx_mono_draw_string("oii", 0, 20, &sysfont);
+
+<<<<<<< Updated upstream
+	uint32_t cont=0;
+	for (;;)
+	{
+		char buf[3];
+		
+		cont++;
+		
+		sprintf(buf,"%03d",cont);
+		gfx_mono_draw_string(buf, 0, 20, &sysfont);
+				
+		vTaskDelay(1000);
+	}
+}
+
+
+static void task_printConsole(void *pvParameters) {
+>>>>>>> Stashed changes
 	
 	rtt_sel_source(RTT, false);
 	rtt_init(RTT, pllPreScale);
@@ -259,13 +306,158 @@ static void task_sensor(void *pvParameters){
 	}
 }
 
+<<<<<<< Updated upstream
+=======
+/************************************************************************/
+/* funcoes                                                              */
+/************************************************************************/
+=======
+	/** Muda o estado do LED (pisca) **/
+	xSemaphoreGiveFromISR(xSemaphoreTC, &xHigherPriorityTaskWoken);
+}
+
+void TC4_Handler(void) {
+	/**
+	* Devemos indicar ao TC que a interrupção foi satisfeita.
+	* Isso é realizado pela leitura do status do periférico
+	**/
+	volatile uint32_t status = tc_get_status(TC1, 1);
+
+	/** Muda o estado do LED (pisca) **/
+	if (flag_tc_button == 1){
+		flag_tc_count ++;
+		if (flag_tc_count > 20){
+			flag_tc_button = 0;
+			flag_tc_count = 0;
+			xSemaphoreGiveFromISR(xSemaphoreRTC, &xHigherPriorityTaskWoken);
+		}
+	}
+
+}
+
+void RTC_Handler(void) {
+	uint32_t ul_status = rtc_get_status(RTC);
+	
+	/* seccond tick */
+	if ((ul_status & RTC_SR_SEC) == RTC_SR_SEC) {
+		// o código para irq de segundo vem aqui
+	}
+	
+	/* Time or date alarm */
+	if ((ul_status & RTC_SR_ALARM) == RTC_SR_ALARM) {
+		xSemaphoreGiveFromISR(xSemaphoreRTC, &xHigherPriorityTaskWoken);
+		// o código para irq de alame vem aqui
+	}
+
+	rtc_clear_status(RTC, RTC_SCCR_SECCLR);
+	rtc_clear_status(RTC, RTC_SCCR_ALRCLR);
+	rtc_clear_status(RTC, RTC_SCCR_ACKCLR);
+	rtc_clear_status(RTC, RTC_SCCR_TIMCLR);
+	rtc_clear_status(RTC, RTC_SCCR_CALCLR);
+	rtc_clear_status(RTC, RTC_SCCR_TDERRCLR);
+}
+
+void TC_init(Tc * TC, int ID_TC, int TC_CHANNEL, int freq){
+	uint32_t ul_div;
+	uint32_t ul_tcclks;
+	uint32_t ul_sysclk = sysclk_get_cpu_hz();
+
+	/* Configura o PMC */
+	pmc_enable_periph_clk(ID_TC);
+
+	/** Configura o TC para operar em  freq hz e interrupçcão no RC compare */
+	tc_find_mck_divisor(freq, ul_sysclk, &ul_div, &ul_tcclks, ul_sysclk);
+	
+	/** ATIVA PMC PCK6 TIMER_CLOCK1  */
+	if(ul_tcclks == 0 )
+	pmc_enable_pck(PMC_PCK_6);
+	
+	tc_init(TC, TC_CHANNEL, ul_tcclks | TC_CMR_CPCTRG);
+	tc_write_rc(TC, TC_CHANNEL, (ul_sysclk / ul_div) / freq);
+
+	/* Configura NVIC*/
+	NVIC_SetPriority(ID_TC, 4);
+	NVIC_EnableIRQ((IRQn_Type) ID_TC);
+	tc_enable_interrupt(TC, TC_CHANNEL, TC_IER_CPCS);
+}
+
+void RTC_init(Rtc *rtc, uint32_t id_rtc, calendar t, uint32_t irq_type) {
+	/* Configura o PMC */
+	pmc_enable_periph_clk(ID_RTC);
+
+	/* Default RTC configuration, 24-hour mode */
+	rtc_set_hour_mode(rtc, 0);
+
+	/* Configura data e hora manualmente */
+	rtc_set_date(rtc, t.year, t.month, t.day, t.week);
+	rtc_set_time(rtc, t.hour, t.minute, t.second);
+
+	/* Configure RTC interrupts */
+	NVIC_DisableIRQ(id_rtc);
+	NVIC_ClearPendingIRQ(id_rtc);
+	NVIC_SetPriority(id_rtc, 4);
+	NVIC_EnableIRQ(id_rtc);
+
+	/* Ativa interrupcao via alarme */
+	rtc_enable_interrupt(rtc,  irq_type);
+}
+
+void led_pisca(int led){
+	if (led == 1){
+		pio_clear(LED1_PIO, LED1_MASK);
+		vTaskDelay(50);
+		pio_set(LED1_PIO, LED1_MASK);
+	}
+	if (led == 2){
+		pio_clear(LED2_PIO, LED2_MASK);
+		vTaskDelay(50);
+		pio_set(LED2_PIO, LED2_MASK);
+	}
+	if (led == 3){
+		pio_clear(LED3_PIO, LED3_MASK);
+		vTaskDelay(50);
+		pio_set(LED3_PIO, LED3_MASK);
+	}
+}
+
+static void task_oled(void *pvParameters){
+	gfx_mono_ssd1306_init();
+	char char_minutes[3] = "";
+	char char_seconds[3] = "";
+	char char_hours[12] = "";
+	
+	for(;;){
+		rtc_get_time(RTC, &global_hours, &global_minutes, &global_seconds);
+		sprintf(char_minutes, "%d", global_minutes);
+		sprintf(char_seconds, "%d", global_seconds);
+		sprintf(char_hours, "%d", global_hours);
+		strcat(char_hours, ":");
+		strcat(char_hours, char_minutes);
+		strcat(char_hours, ":");
+		strcat(char_hours, char_seconds);
+		gfx_mono_draw_string(char_hours, 0, 0, &sysfont);
+		pmc_sleep(SLEEPMGR_SLEEP_WFI);
+	}
+}
+
+static void task_sensor(void *pvParameters){
+	for (;;)  {
+		pmc_sleep(SLEEPMGR_SLEEP_WFI);
+	}
+}
+
+>>>>>>> Stashed changes
 static void task_rtt(void *pvParameters){
 	for(;;){
 		if (xSemaphoreTake(xSemaphoreRTT, 100)){
 			led_pisca(2);
 			RTT_init(4, 16, RTT_MR_ALMIEN);
 		}
+<<<<<<< Updated upstream
 		vTaskDelay(500);
+=======
+		pmc_sleep(SLEEPMGR_SLEEP_WFI);
+>>>>>>> Stashed changes
 	}
 }
 
@@ -274,7 +466,11 @@ static void task_tc(void *pvParameters){
 		if (xSemaphoreTake(xSemaphoreTC, 100)){
 			led_pisca(1);
 		}
+<<<<<<< Updated upstream
 		vTaskDelay(100);
+=======
+		pmc_sleep(SLEEPMGR_SLEEP_WFI);
+>>>>>>> Stashed changes
 	}
 }
 
@@ -283,9 +479,16 @@ static void task_rtc(void *pvParameters){
 		if (xSemaphoreTake(xSemaphoreRTC, 100)){
 			led_pisca(3);
 		}
+<<<<<<< Updated upstream
 		vTaskDelay(500);
 	}
 }
+=======
+		pmc_sleep(SLEEPMGR_SLEEP_WFI);
+	}
+}
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 
 static void configure_console(void) {
 	const usart_serial_options_t uart_serial_options = {
@@ -317,10 +520,23 @@ void led_init(){
 	pio_set(LED3_PIO, LED3_MASK);
 }
 
+<<<<<<< Updated upstream
 void but_callback1(void){
 	printf("Entrou");
 	tc_start(TC1, 1);
 }
+=======
+<<<<<<< Updated upstream
+/************************************************************************/
+/* main                                                                 */
+/************************************************************************/
+=======
+void but_callback1(void){
+	flag_tc_button = 1;
+	flag_tc_count = 0;
+}
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 
 void button_init(void){
 	pmc_enable_periph_clk(BUT1_ID);					
@@ -380,6 +596,7 @@ int main(void) {
 		printf("Failed to create semaphore RTC\n");
 	}
 
+<<<<<<< Updated upstream
 	TC_init(TC2, ID_TC7, 1, 4);
 	tc_start(TC2, 1);
 	
@@ -389,6 +606,20 @@ int main(void) {
 	RTT_init(4, 16, RTT_MR_ALMIEN);
 	calendar rtc_initial = {2023, 4, 24, 17, 8, 55 ,1};
 	RTC_init(RTC, ID_RTC, rtc_initial, RTC_IER_SECEN);
+=======
+<<<<<<< Updated upstream
+=======
+	TC_init(TC2, ID_TC7, 1, 4);
+	tc_start(TC2, 1);
+	
+	TC_init(TC1, ID_TC4, 1, 1);
+	tc_start(TC1, 1);
+	
+	RTT_init(4, 16, RTT_MR_ALMIEN);
+	calendar rtc_initial = {2023, 4, 24, 17, 16, 15 ,1};
+	RTC_init(RTC, ID_RTC, rtc_initial, RTC_IER_SECEN);
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 	/* Start the scheduler. */
 	vTaskStartScheduler();
 	/* RTOS não deve chegar aqui !! */
