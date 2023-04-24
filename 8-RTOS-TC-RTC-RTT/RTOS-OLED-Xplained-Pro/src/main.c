@@ -40,20 +40,12 @@ extern void vApplicationTickHook(void);
 extern void vApplicationMallocFailedHook(void);
 extern void xPortSysTickHandler(void);
 
-<<<<<<< Updated upstream
-volatile int global_seconds;
-volatile int global_minutes;
-volatile int global_hours;
-=======
-<<<<<<< Updated upstream
-=======
 volatile int global_seconds;
 volatile int global_minutes;
 volatile int global_hours;
 
 volatile int flag_tc_count;
 volatile int flag_tc_button = 0;
->>>>>>> Stashed changes
 	
 typedef struct  {
 	uint32_t year;
@@ -75,10 +67,6 @@ SemaphoreHandle_t xSemaphoreRTC;
 
 BaseType_t xHigherPriorityTaskWoken = pdTRUE;
 
-<<<<<<< Updated upstream
-=======
->>>>>>> Stashed changes
->>>>>>> Stashed changes
 /** prototypes */
 void but_callback(void);
 static void BUT_init(void);
@@ -106,9 +94,7 @@ extern void vApplicationMallocFailedHook(void) {
 
 static void RTT_init(float freqPrescale, uint32_t IrqNPulses, uint32_t rttIRQSource) {
 
-<<<<<<< Updated upstream
 	uint16_t pllPreScale = (int) (((float) 32768) / freqPrescale);
-=======
 void but_callback(void) {
 }
 
@@ -121,7 +107,6 @@ static void task_oled(void *pvParameters) {
   gfx_mono_draw_string("Exemplo RTOS", 0, 0, &sysfont);
   gfx_mono_draw_string("oii", 0, 20, &sysfont);
 
-<<<<<<< Updated upstream
 	uint32_t cont=0;
 	for (;;)
 	{
@@ -138,7 +123,6 @@ static void task_oled(void *pvParameters) {
 
 
 static void task_printConsole(void *pvParameters) {
->>>>>>> Stashed changes
 	
 	rtt_sel_source(RTT, false);
 	rtt_init(RTT, pllPreScale);
@@ -175,8 +159,8 @@ void RTT_Handler(void){
 
 void TC7_Handler(void) {
 	/**
-	* Devemos indicar ao TC que a interrupção foi satisfeita.
-	* Isso é realizado pela leitura do status do periférico
+	* Devemos indicar ao TC que a interrupï¿½ï¿½o foi satisfeita.
+	* Isso ï¿½ realizado pela leitura do status do perifï¿½rico
 	**/
 	volatile uint32_t status = tc_get_status(TC2, 1);
 
@@ -186,27 +170,34 @@ void TC7_Handler(void) {
 
 void TC4_Handler(void) {
 	/**
-	* Devemos indicar ao TC que a interrupção foi satisfeita.
-	* Isso é realizado pela leitura do status do periférico
+	* Devemos indicar ao TC que a interrupï¿½ï¿½o foi satisfeita.
+	* Isso ï¿½ realizado pela leitura do status do perifï¿½rico
 	**/
 	volatile uint32_t status = tc_get_status(TC1, 1);
 
 	/** Muda o estado do LED (pisca) **/
-	xSemaphoreGiveFromISR(xSemaphoreRTC, &xHigherPriorityTaskWoken);
-}
+	if (flag_tc_button == 1){
+		flag_tc_count ++;
+		if (flag_tc_count > 20){
+			flag_tc_button = 0;
+			flag_tc_count = 0;
+			xSemaphoreGiveFromISR(xSemaphoreRTC, &xHigherPriorityTaskWoken);
+		}
+	}
+} 
 
 void RTC_Handler(void) {
 	uint32_t ul_status = rtc_get_status(RTC);
 	
 	/* seccond tick */
 	if ((ul_status & RTC_SR_SEC) == RTC_SR_SEC) {
-		// o código para irq de segundo vem aqui
+		// o cï¿½digo para irq de segundo vem aqui
 	}
 	
 	/* Time or date alarm */
 	if ((ul_status & RTC_SR_ALARM) == RTC_SR_ALARM) {
 		xSemaphoreGiveFromISR(xSemaphoreRTC, &xHigherPriorityTaskWoken);
-		// o código para irq de alame vem aqui
+		// o cï¿½digo para irq de alame vem aqui
 	}
 
 	rtc_clear_status(RTC, RTC_SCCR_SECCLR);
@@ -225,7 +216,7 @@ void TC_init(Tc * TC, int ID_TC, int TC_CHANNEL, int freq){
 	/* Configura o PMC */
 	pmc_enable_periph_clk(ID_TC);
 
-	/** Configura o TC para operar em  freq hz e interrupçcão no RC compare */
+	/** Configura o TC para operar em  freq hz e interrupï¿½cï¿½o no RC compare */
 	tc_find_mck_divisor(freq, ul_sysclk, &ul_div, &ul_tcclks, ul_sysclk);
 	
 	/** ATIVA PMC PCK6 TIMER_CLOCK1  */
@@ -306,47 +297,20 @@ static void task_sensor(void *pvParameters){
 	}
 }
 
-<<<<<<< Updated upstream
-=======
-/************************************************************************/
-/* funcoes                                                              */
-/************************************************************************/
-=======
-	/** Muda o estado do LED (pisca) **/
-	xSemaphoreGiveFromISR(xSemaphoreTC, &xHigherPriorityTaskWoken);
-}
 
-void TC4_Handler(void) {
-	/**
-	* Devemos indicar ao TC que a interrupção foi satisfeita.
-	* Isso é realizado pela leitura do status do periférico
-	**/
-	volatile uint32_t status = tc_get_status(TC1, 1);
-
-	/** Muda o estado do LED (pisca) **/
-	if (flag_tc_button == 1){
-		flag_tc_count ++;
-		if (flag_tc_count > 20){
-			flag_tc_button = 0;
-			flag_tc_count = 0;
-			xSemaphoreGiveFromISR(xSemaphoreRTC, &xHigherPriorityTaskWoken);
-		}
-	}
-
-}
 
 void RTC_Handler(void) {
 	uint32_t ul_status = rtc_get_status(RTC);
 	
 	/* seccond tick */
 	if ((ul_status & RTC_SR_SEC) == RTC_SR_SEC) {
-		// o código para irq de segundo vem aqui
+		// o cï¿½digo para irq de segundo vem aqui
 	}
 	
 	/* Time or date alarm */
 	if ((ul_status & RTC_SR_ALARM) == RTC_SR_ALARM) {
 		xSemaphoreGiveFromISR(xSemaphoreRTC, &xHigherPriorityTaskWoken);
-		// o código para irq de alame vem aqui
+		// o cï¿½digo para irq de alame vem aqui
 	}
 
 	rtc_clear_status(RTC, RTC_SCCR_SECCLR);
@@ -365,7 +329,7 @@ void TC_init(Tc * TC, int ID_TC, int TC_CHANNEL, int freq){
 	/* Configura o PMC */
 	pmc_enable_periph_clk(ID_TC);
 
-	/** Configura o TC para operar em  freq hz e interrupçcão no RC compare */
+	/** Configura o TC para operar em  freq hz e interrupï¿½cï¿½o no RC compare */
 	tc_find_mck_divisor(freq, ul_sysclk, &ul_div, &ul_tcclks, ul_sysclk);
 	
 	/** ATIVA PMC PCK6 TIMER_CLOCK1  */
@@ -446,18 +410,13 @@ static void task_sensor(void *pvParameters){
 	}
 }
 
->>>>>>> Stashed changes
 static void task_rtt(void *pvParameters){
 	for(;;){
 		if (xSemaphoreTake(xSemaphoreRTT, 100)){
 			led_pisca(2);
 			RTT_init(4, 16, RTT_MR_ALMIEN);
 		}
-<<<<<<< Updated upstream
-		vTaskDelay(500);
-=======
 		pmc_sleep(SLEEPMGR_SLEEP_WFI);
->>>>>>> Stashed changes
 	}
 }
 
@@ -466,29 +425,18 @@ static void task_tc(void *pvParameters){
 		if (xSemaphoreTake(xSemaphoreTC, 100)){
 			led_pisca(1);
 		}
-<<<<<<< Updated upstream
-		vTaskDelay(100);
-=======
 		pmc_sleep(SLEEPMGR_SLEEP_WFI);
->>>>>>> Stashed changes
 	}
-}
+}	
 
 static void task_rtc(void *pvParameters){
 	for(;;){
 		if (xSemaphoreTake(xSemaphoreRTC, 100)){
 			led_pisca(3);
 		}
-<<<<<<< Updated upstream
-		vTaskDelay(500);
 	}
-}
-=======
 		pmc_sleep(SLEEPMGR_SLEEP_WFI);
-	}
 }
->>>>>>> Stashed changes
->>>>>>> Stashed changes
 
 static void configure_console(void) {
 	const usart_serial_options_t uart_serial_options = {
@@ -520,23 +468,10 @@ void led_init(){
 	pio_set(LED3_PIO, LED3_MASK);
 }
 
-<<<<<<< Updated upstream
-void but_callback1(void){
-	printf("Entrou");
-	tc_start(TC1, 1);
-}
-=======
-<<<<<<< Updated upstream
-/************************************************************************/
-/* main                                                                 */
-/************************************************************************/
-=======
 void but_callback1(void){
 	flag_tc_button = 1;
 	flag_tc_count = 0;
 }
->>>>>>> Stashed changes
->>>>>>> Stashed changes
 
 void button_init(void){
 	pmc_enable_periph_clk(BUT1_ID);					
@@ -596,19 +531,6 @@ int main(void) {
 		printf("Failed to create semaphore RTC\n");
 	}
 
-<<<<<<< Updated upstream
-	TC_init(TC2, ID_TC7, 1, 4);
-	tc_start(TC2, 1);
-	
-	TC_init(TC1, ID_TC4, 1, 4);
-	
-	
-	RTT_init(4, 16, RTT_MR_ALMIEN);
-	calendar rtc_initial = {2023, 4, 24, 17, 8, 55 ,1};
-	RTC_init(RTC, ID_RTC, rtc_initial, RTC_IER_SECEN);
-=======
-<<<<<<< Updated upstream
-=======
 	TC_init(TC2, ID_TC7, 1, 4);
 	tc_start(TC2, 1);
 	
@@ -618,11 +540,9 @@ int main(void) {
 	RTT_init(4, 16, RTT_MR_ALMIEN);
 	calendar rtc_initial = {2023, 4, 24, 17, 16, 15 ,1};
 	RTC_init(RTC, ID_RTC, rtc_initial, RTC_IER_SECEN);
->>>>>>> Stashed changes
->>>>>>> Stashed changes
 	/* Start the scheduler. */
 	vTaskStartScheduler();
-	/* RTOS não deve chegar aqui !! */
+	/* RTOS nï¿½o deve chegar aqui !! */
 	while(1){}
 
 	/* Will only get here if there was insufficient memory to create the idle task. */
