@@ -2,7 +2,32 @@
 # Automatically-generated file. Do not edit or delete the file
 ################################################################################
 
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+src\ASF\common\services\sleepmgr\sam\sleepmgr.c
+
+>>>>>>> Stashed changes
 src\ASF\sam\drivers\rtc\rtc.c
+=======
+<<<<<<< Updated upstream
+src\ASF\common\components\display\ili9341\ili9341.c
+
+src\ASF\common\services\gfx\gfx_generic.c
+
+src\ASF\common\services\gfx\gfx_ili9341_sdt028atft.c
+
+src\ASF\common\services\gfx\gfx_text.c
+
+src\ASF\common\services\gfx\sysfont.c
+
+src\ASF\common\services\spi\sam_spi\spi_master.c
+=======
+src\ASF\common\services\sleepmgr\sam\sleepmgr.c
+
+src\ASF\sam\drivers\rtc\rtc.c
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 
 src\ASF\sam\drivers\rtt\rtt.c
 
