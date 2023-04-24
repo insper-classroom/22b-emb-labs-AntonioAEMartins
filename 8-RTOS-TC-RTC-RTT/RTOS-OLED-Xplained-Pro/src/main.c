@@ -319,20 +319,7 @@ void led_init(){
 
 void but_callback1(void){
 	printf("Entrou");
-	calendar rtc_initial = {2023, 4, 24, 17, 8, 55 ,1};
-	RTC_init(RTC, ID_RTC, rtc_initial, RTC_IER_SECEN);
-	
-	/* Leitura do valor atual do RTC */
-	uint32_t current_hour, current_min, current_sec;
-	uint32_t current_year, current_month, current_day, current_week;
-	rtc_get_time(RTC, &current_hour, &current_min, &current_sec);
-	rtc_get_date(RTC, &current_year, &current_month, &current_day, &current_week);
-	
-	/* configura alarme do RTC para daqui 20 segundos */
-	rtc_set_date_alarm(RTC, 1, current_month, 1, current_day);
-	rtc_set_time_alarm(RTC, 1, current_hour, 1, current_min, 1, current_sec + 1);
-	
-	printf("Inicializou o RTC\n");
+	tc_start(TC1, 1);
 }
 
 void button_init(void){
@@ -390,6 +377,7 @@ int main(void) {
 		printf("Failed to create semaphore TC\n");
 	}
 	if (xSemaphoreRTC == NULL){
+
 		printf("Failed to create semaphore RTC\n");
 	}
 
@@ -397,7 +385,7 @@ int main(void) {
 	tc_start(TC2, 1);
 	
 	TC_init(TC1, ID_TC4, 1, 4);
-	tc_start(TC1, 1);
+	
 	
 	RTT_init(4, 16, RTT_MR_ALMIEN);
 	calendar rtc_initial = {2023, 4, 24, 17, 8, 55 ,1};
