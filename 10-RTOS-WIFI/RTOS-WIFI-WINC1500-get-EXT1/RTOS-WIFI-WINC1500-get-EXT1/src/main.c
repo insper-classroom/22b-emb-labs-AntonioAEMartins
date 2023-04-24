@@ -6,40 +6,28 @@
 #include "socket/include/socket.h"
 #include "util.h"
 
-/************************************************************************/
-/* WIFI                                                                 */
-/************************************************************************/
+#define LED_PIO PIOC
+#define LED_ID ID_PIOC
+#define LED_IDX 8
+#define LED_MASK (1 << LED_IDX)
 
-/** IP address of host. */
 uint32_t gu32HostIp = 0;
 
-/** TCP client socket handlers. */
 static SOCKET tcp_client_socket = -1;
 
-/** Receive buffer definition. */
 static uint8_t g_receivedBuffer[MAIN_WIFI_M2M_BUFFER_SIZE] = {0};
 static uint8_t g_sendBuffer[MAIN_WIFI_M2M_BUFFER_SIZE] = {0};
 
-/** Wi-Fi status variable. */
 static bool gbConnectedWifi = false;
 
-/** Get host IP status variable. */
-/** Wi-Fi connection state */
 static uint8_t wifi_connected;
 
-/** Instance of HTTP client module. */
 static bool gbHostIpByName = false;
 
-/** TCP Connection status variable. */
 static bool gbTcpConnection = false;
 static bool gbTcpConnected = false;
 
-/** Server host name. */
 static char server_host_name[] = MAIN_SERVER_NAME;
-
-/************************************************************************/
-/* RTOS                                                                 */
-/************************************************************************/
 
 #define TASK_WIFI_STACK_SIZE      (6*4096/sizeof(portSTACK_TYPE))
 #define TASK_WIFI_PRIORITY        (1)
@@ -58,10 +46,6 @@ extern void xPortSysTickHandler(void);
 
 TaskHandle_t xHandleWifi = NULL;
 
-/************************************************************************/
-/* HOOKs                                                                */
-/************************************************************************/
-
 extern void vApplicationStackOverflowHook(xTaskHandle *pxTask,
 signed char *pcTaskName){
   printf("stack overflow %x %s\r\n", pxTask, (portCHAR *)pcTaskName);
@@ -76,22 +60,6 @@ extern void vApplicationMallocFailedHook(void){
   configASSERT( ( volatile void * ) NULL );
 }
 
-/************************************************************************/
-/* funcoes                                                              */
-/************************************************************************/
-
-/************************************************************************/
-/* callbacks                                                            */
-/************************************************************************/
-
-/**
-* \brief Callback function of IP address.
-*
-* \param[in] hostName Domain name.
-* \param[in] hostIp Server IP.
-*
-* \return None.
-*/
 static void resolve_cb(uint8_t *hostName, uint32_t hostIp)
 {
   gu32HostIp = hostIp;
@@ -101,15 +69,6 @@ static void resolve_cb(uint8_t *hostName, uint32_t hostIp)
   (int)IPV4_BYTE(hostIp, 2), (int)IPV4_BYTE(hostIp, 3));
 }
 
-/**
-* \brief Callback function of TCP client socket.
-*
-* \param[in] sock socket handler.
-* \param[in] u8Msg Type of Socket notification
-* \param[in] pvMsg A structure contains notification informations.
-*
-* \return None.
-*/
 static void socket_cb(SOCKET sock, uint8_t u8Msg, void *pvMsg)
 {
   /* Check for socket event on TCP socket. */
@@ -158,14 +117,6 @@ static void socket_cb(SOCKET sock, uint8_t u8Msg, void *pvMsg)
   }
 }
 
-/**
-* \brief Callback to get the Wi-Fi status update.
-*
-* \param[in] u8MsgType Type of Wi-Fi notification.
-* \param[in] pvMsg A pointer to a buffer containing the notification parameters.
-*
-* \return None.
-*/
 static void wifi_cb(uint8_t u8MsgType, void *pvMsg)
 {
   switch (u8MsgType) {
@@ -217,11 +168,10 @@ static void wifi_cb(uint8_t u8MsgType, void *pvMsg)
   }
 }
 
-/************************************************************************/
-/* TASKS                                                                */
-/************************************************************************/
-
 static void task_process(void *pvParameters) {
+	
+	char led_needle[4] = "led";
+	char str_result[7];
 
   printf("task process created \n");
   vTaskDelay(1000);
@@ -283,6 +233,12 @@ static void task_process(void *pvParameters) {
       if(xQueueReceive(xQueueMsg, &p_recvMsg, 5000) == pdTRUE){
         printf(STRING_LINE);
         printf(p_recvMsg->pu8Buffer);
+		str_result = strstr(p_recvMsg->pu8Buffer, led_needle);
+		if (atoi(str_result[7]) == 1){
+			pio_clear(LED_PIO, LED_MASK);
+		} else {
+			pio_set(LED_PIO, LED_MASK);
+		}
         printf(STRING_EOL);  printf(STRING_LINE);
         state = DONE;
       }
@@ -373,11 +329,20 @@ static void task_wifi(void *pvParameters) {
   }
 }
 
+
+void led_init(void){
+	//Config LED
+	pmc_enable_periph_clk(LED_ID);
+	pio_configure(LED_PIO, PIO_OUTPUT_0, LED_MASK, PIO_DEFAULT);
+	pio_set(LED_PIO, LED_MASK);
+}
+
 int main(void)
 {
   /* Initialize the board. */
   sysclk_init();
   board_init();
+  led_init();
 
   /* Initialize the UART console. */
   configure_console();
