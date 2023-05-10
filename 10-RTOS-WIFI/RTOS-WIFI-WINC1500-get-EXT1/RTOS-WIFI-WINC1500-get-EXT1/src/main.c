@@ -6,36 +6,86 @@
 #include "socket/include/socket.h"
 #include "util.h"
 
-#define LED_PIO PIOC
-#define LED_ID ID_PIOC
-#define LED_IDX 8
-#define LED_MASK (1 << LED_IDX)
+/************************************************************************/
+/* WIFI                                                                 */
+/************************************************************************/
 
+/** IP address of host. */
 uint32_t gu32HostIp = 0;
 
+/** TCP client socket handlers. */
 static SOCKET tcp_client_socket = -1;
 
+/** Receive buffer definition. */
 static uint8_t g_receivedBuffer[MAIN_WIFI_M2M_BUFFER_SIZE] = {0};
 static uint8_t g_sendBuffer[MAIN_WIFI_M2M_BUFFER_SIZE] = {0};
 
+/** Wi-Fi status variable. */
 static bool gbConnectedWifi = false;
 
+/** Get host IP status variable. */
+/** Wi-Fi connection state */
 static uint8_t wifi_connected;
 
+/** Instance of HTTP client module. */
 static bool gbHostIpByName = false;
 
+/** TCP Connection status variable. */
 static bool gbTcpConnection = false;
 static bool gbTcpConnected = false;
 
+/** Server host name. */
 static char server_host_name[] = MAIN_SERVER_NAME;
+
+/************************************************************************/
+/* RTOS                                                                 */
+/************************************************************************/
 
 #define TASK_WIFI_STACK_SIZE      (6*4096/sizeof(portSTACK_TYPE))
 #define TASK_WIFI_PRIORITY        (1)
 #define TASK_PROCESS_STACK_SIZE   (4*4096/sizeof(portSTACK_TYPE))
 #define TASK_PROCESS_PRIORITY     (0)
 
+#define MAIN_WLAN_SSID "Arqcomp"
+#define MAIN_WLAN_PSK "SonicArqcomp"
+
+#define MAIN_SERVER_PORT  5000
+#define MAIN_SERVER_NAME  "192.168.50.22"
+
+#define LED_PIO PIOC
+#define LED_ID ID_PIOC
+#define LED_IDX 8
+#define LED_MASK (1 << LED_IDX)
+
+#define BUT_PIO PIOA
+#define BUT_ID ID_PIOA
+#define BUT_IDX 11
+#define BUT_MASK (1 << BUT_IDX)
+
 SemaphoreHandle_t xSemaphore;
+SemaphoreHandle_t xSemaphoreButton;
 QueueHandle_t xQueueMsg;
+BaseType_t xHigherPriorityTaskWoken = pdTRUE;
+
+void callback_button(void){
+	xSemaphoreGiveFromISR(xSemaphoreButton, &xHigherPriorityTaskWoken);
+}
+
+void led_init(void){
+	pmc_enable_periph_clk(LED_ID);
+	pio_configure(LED_PIO, PIO_OUTPUT_0, LED_MASK, PIO_DEFAULT);
+	pio_set(LED_PIO, LED_MASK);
+	
+	pmc_enable_periph_clk(BUT_ID);
+	pio_configure(BUT_PIO, PIO_INPUT, BUT_MASK, PIO_PULLUP | PIO_DEBOUNCE);
+	pio_handler_set(BUT_PIO, BUT_ID, BUT_MASK,PIO_IT_FALL_EDGE, &callback_button);
+	pio_enable_interrupt(BUT_PIO, BUT_MASK);
+	pio_get_interrupt_status(BUT_PIO);
+	NVIC_EnableIRQ(BUT_ID);
+	NVIC_SetPriority(BUT_ID, 4);
+}
+
+
 
 extern void vApplicationStackOverflowHook(xTaskHandle *pxTask,
 signed char *pcTaskName);
@@ -168,10 +218,25 @@ static void wifi_cb(uint8_t u8MsgType, void *pvMsg)
   }
 }
 
-static void task_process(void *pvParameters) {
+
+
+void get_state(char *path, char *status){
+	printf("STATE: GET \n");
 	
-	char led_needle[4] = "led";
-	char str_result[7];
+	sprintf((char *) g_sendBuffer, "%s %s HTTP/1.1\r\n Accept: */*\r\n\r\n", status, path);
+	send(tcp_client_socket, g_sendBuffer, strlen((char *)g_sendBuffer), 0);
+}
+
+void post_state(char *path, char *status){
+	if (status == "POST"){
+		printf("STATE: POST \n");
+	}
+	
+	sprintf((char *) g_sendBuffer, "%s %s HTTP/1.1\r\nContent-Length: 27\nContent-Type: application/x-www-form-urlencoded\n\nLED=1*/*\r\n\r\n", status, path);
+	send(tcp_client_socket, g_sendBuffer, strlen((char *)g_sendBuffer), 0);
+}
+
+static void task_process(void *pvParameters) {
 
   printf("task process created \n");
   vTaskDelay(1000);
@@ -186,12 +251,13 @@ static void task_process(void *pvParameters) {
     MSG,
     TIMEOUT,
     DONE,
+	POST
   };
 
   enum states state = WAIT;
 
   while(1){
-
+	  
     switch(state){
       case WAIT:
       // aguarda task_wifi conectar no wifi e socket estar pronto
@@ -199,13 +265,21 @@ static void task_process(void *pvParameters) {
       while(gbTcpConnection == false && tcp_client_socket >= 0){
         vTaskDelay(10);
       }
-      state = GET;
+	  if (xSemaphoreTake(xSemaphoreButton, 50)){
+		  printf("POST");
+		  state = POST;
+	  } else {
+		  printf("GET");
+		   state = GET;
+	  }
       break;
 
       case GET:
-      printf("STATE: GET \n");
-      sprintf((char *)g_sendBuffer, MAIN_PREFIX_BUFFER);
-      send(tcp_client_socket, g_sendBuffer, strlen((char *)g_sendBuffer), 0);
+//       printf("STATE: GET \n");
+       //sprintf((char *)g_sendBuffer, MAIN_PREFIX_BUFFER);
+//       send(tcp_client_socket, g_sendBuffer, strlen((char *)g_sendBuffer), 0);
+		get_state("/status", "GET");
+	  
       state = ACK;
       break;
 
@@ -224,27 +298,32 @@ static void task_process(void *pvParameters) {
         state = TIMEOUT;
       };
       break;
-
+	  case POST:
+		post_state("/status", "POST");
+		state = DONE;
+		break;
       case MSG:
-      printf("STATE: MSG \n");
-      memset(g_receivedBuffer, 0, MAIN_WIFI_M2M_BUFFER_SIZE);
-      recv(tcp_client_socket, &g_receivedBuffer[0], MAIN_WIFI_M2M_BUFFER_SIZE, 0);
+		  printf("STATE: MSG \n");
+		  memset(g_receivedBuffer, 0, MAIN_WIFI_M2M_BUFFER_SIZE);
+		  recv(tcp_client_socket, &g_receivedBuffer[0], MAIN_WIFI_M2M_BUFFER_SIZE, 0);
 
-      if(xQueueReceive(xQueueMsg, &p_recvMsg, 5000) == pdTRUE){
-        printf(STRING_LINE);
-        printf(p_recvMsg->pu8Buffer);
-		str_result = strstr(p_recvMsg->pu8Buffer, led_needle);
-		if (atoi(str_result[7]) == 1){
-			pio_clear(LED_PIO, LED_MASK);
-		} else {
-			pio_set(LED_PIO, LED_MASK);
-		}
-        printf(STRING_EOL);  printf(STRING_LINE);
-        state = DONE;
-      }
-      else {
-        state = TIMEOUT;
-      };
+		  if(xQueueReceive(xQueueMsg, &p_recvMsg, 5000) == pdTRUE){
+			  printf(STRING_LINE);
+			  printf(p_recvMsg->pu8Buffer);
+			  if (p_recvMsg->pu8Buffer[12] == '1'){
+				  pio_clear(LED_PIO, LED_MASK);
+				  printf("ACENDEU");
+			  } else {
+				  pio_set(LED_PIO, LED_MASK);
+				  printf("APAGOU");
+			  }
+			  printf("LED: %c\n", p_recvMsg->pu8Buffer[12]);
+			  printf(STRING_EOL);  printf(STRING_LINE);
+			  state = DONE;
+		  }
+		  else {
+			  state = TIMEOUT;
+		  };
       break;
 
       case DONE:
@@ -329,14 +408,6 @@ static void task_wifi(void *pvParameters) {
   }
 }
 
-
-void led_init(void){
-	//Config LED
-	pmc_enable_periph_clk(LED_ID);
-	pio_configure(LED_PIO, PIO_OUTPUT_0, LED_MASK, PIO_DEFAULT);
-	pio_set(LED_PIO, LED_MASK);
-}
-
 int main(void)
 {
   /* Initialize the board. */
@@ -347,6 +418,12 @@ int main(void)
   /* Initialize the UART console. */
   configure_console();
   printf(STRING_HEADER);
+  
+  xSemaphoreButton = xSemaphoreCreateBinary();
+  
+  if(xSemaphoreButton == NULL){
+	  printf("Erro ao criar semaforo");
+  }
 
   xTaskCreate(task_wifi, "Wifi", TASK_WIFI_STACK_SIZE, NULL, TASK_WIFI_PRIORITY, &xHandleWifi);
   xTaskCreate(task_process, "process", TASK_PROCESS_STACK_SIZE, NULL, TASK_PROCESS_PRIORITY,  NULL );
