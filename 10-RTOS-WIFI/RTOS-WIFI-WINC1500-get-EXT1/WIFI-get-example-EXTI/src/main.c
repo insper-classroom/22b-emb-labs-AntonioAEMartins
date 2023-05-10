@@ -21,6 +21,12 @@
 #define LED_IDX 8
 #define LED_MASK (1 << LED_IDX)
 
+void led_init(void){
+	pmc_enable_periph_clk(LED_ID);
+	pio_configure(LED_PIO, PIO_OUTPUT_0, LED_MASK, PIO_DEFAULT);
+	pio_set(LED_PIO, LED_MASK);
+}
+
 /** IP address of host. */
 uint32_t gu32HostIp = 0;
 
@@ -60,7 +66,6 @@ static void configure_console(void)
 	sysclk_enable_peripheral_clock(CONSOLE_UART_ID);
 	stdio_serial_init(CONF_UART, &uart_serial_options);
 }
-
 
 int inet_aton(const char *cp, in_addr *ap)
 {
@@ -116,7 +121,6 @@ int inet_aton(const char *cp, in_addr *ap)
 	return 1;
 }
 
-
 static void resolve_cb(uint8_t *hostName, uint32_t hostIp)
 {
 	gu32HostIp = hostIp;
@@ -125,7 +129,6 @@ static void resolve_cb(uint8_t *hostName, uint32_t hostIp)
 	(int)IPV4_BYTE(hostIp, 0), (int)IPV4_BYTE(hostIp, 1),
 	(int)IPV4_BYTE(hostIp, 2), (int)IPV4_BYTE(hostIp, 3));
 }
-
 
 static void socket_cb(SOCKET sock, uint8_t u8Msg, void *pvMsg)
 {
@@ -198,14 +201,6 @@ static void set_dev_name_to_mac(uint8_t *name, uint8_t *mac_addr)
 	}
 }
 
-/**
-* \brief Callback to get the Wi-Fi status update.
-*
-* \param[in] u8MsgType Type of Wi-Fi notification.
-* \param[in] pvMsg A pointer to a buffer containing the notification parameters.
-*
-* \return None.
-*/
 static void wifi_cb(uint8_t u8MsgType, void *pvMsg)
 {
 	switch (u8MsgType) {
@@ -243,11 +238,7 @@ static void wifi_cb(uint8_t u8MsgType, void *pvMsg)
 	}
 }
 
-void led_init(void){
-	pmc_enable_periph_clk(LED_ID);
-	pio_configure(LED_PIO, PIO_OUTPUT_0, LED_MASK, PIO_DEFAULT);
-	pio_set(LED_PIO, LED_MASK);
-}
+
 
 int main(void)
 {
