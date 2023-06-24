@@ -3,8 +3,6 @@
 
 	As it is the first project, it is a simple program that turns on the LEDs when the buttons are pressed.
 */
-
-#include "asf.h"
 #include "function.c"
 
 int main(void)
